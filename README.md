@@ -233,7 +233,7 @@
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────
 const LISTS = {
-  "Unit 1 TPA": [
+  "1.1 A": [
     { kr: "또 뵙겠습니다.",          en: "I'll see you again.",                    cat: "Expressions" },
     { kr: "병장.",                   en: "Sergeant (E-5); \"chief soldier\".",      cat: "Military" },
     { kr: "선생.",                   en: "A teacher.",                             cat: "Vocabulary" },
@@ -248,7 +248,7 @@ const LISTS = {
     { kr: "잘.",                     en: "Well.",                                  cat: "Vocabulary" },
     { kr: "지내다.",                  en: "To spend (time).",                       cat: "Vocabulary" },
   ],
-  "Unit 1 TPB": [
+  "1.1 B": [
     { kr: "고맙습니다.",              en: "Thank you (pure Korean).",               cat: "Expressions" },
     { kr: "감사합니다.",              en: "Thank you (Sino).",                      cat: "Expressions" },
     { kr: "네.",                     en: "Yes.",                                   cat: "Expressions" },
@@ -270,7 +270,7 @@ const LISTS = {
     { kr: "제.",                     en: "I / my (humble).",                       cat: "Vocabulary" },
     { kr: "내.",                     en: "I / my (informal).",                     cat: "Vocabulary" },
   ],
-  "Unit 1 TPC": [
+  "1.1 C": [
     { kr: "계급.",                   en: "A (military) rank.",                            cat: "Military" },
     { kr: "신병.",                   en: "Private (E-1); \"new soldier\".",               cat: "Military" },
     { kr: "이병.",                   en: "Private (E-2); \"second soldier\".",            cat: "Military" },
@@ -293,11 +293,38 @@ const LISTS = {
     { kr: "해병대.",                  en: "Marine Corps; a marine.",                     cat: "Military" },
     { kr: "회사원.",                  en: "A company employee; \"company member\".",       cat: "Vocabulary" },
   ],
+  "1.2 A": [
+    { kr: "가족.",    en: "A family.",                                    cat: "Family" },
+    { kr: "~명.",    en: "A counter for people.",                        cat: "Grammar" },
+    { kr: "~분.",    en: "A counter for people (honorific).",            cat: "Grammar" },
+    { kr: "모두.",   en: "All; every.",                                  cat: "Vocabulary" },
+    { kr: "다.",     en: "All; every.",                                  cat: "Vocabulary" },
+    { kr: "부모.",   en: "Parents; father and mother.",                  cat: "Family" },
+    { kr: "부모님.", en: "Parents; father and mother (honorific).",      cat: "Family" },
+    { kr: "아버지.", en: "A father.",                                    cat: "Family" },
+    { kr: "아빠.",   en: "Dad.",                                         cat: "Family" },
+    { kr: "아버님.", en: "A father (honorific).",                        cat: "Family" },
+    { kr: "어머니.", en: "A mother.",                                    cat: "Family" },
+    { kr: "엄마.",   en: "Mom.",                                         cat: "Family" },
+    { kr: "어머님.", en: "A mother (honorific).",                        cat: "Family" },
+    { kr: "남동생.", en: "A younger brother; \"male younger sibling\".", cat: "Family" },
+    { kr: "누나.",   en: "An older sister (to male).",                   cat: "Family" },
+    { kr: "누님.",   en: "An older sister (to male) (honorific).",       cat: "Family" },
+    { kr: "언니.",   en: "An older sister (to female).",                 cat: "Family" },
+    { kr: "여동생.", en: "A younger sister; \"female younger sibling\".", cat: "Family" },
+    { kr: "오빠.",   en: "An older brother (to female).",                cat: "Family" },
+    { kr: "형.",     en: "An older brother (to male).",                  cat: "Family" },
+    { kr: "형님.",   en: "An older brother (to male) (honorific).",      cat: "Family" },
+    { kr: "형제.",   en: "(Male) siblings.",                             cat: "Family" },
+    { kr: "저희.",   en: "We; my; our (humble).",                        cat: "Vocabulary" },
+    { kr: "우리.",   en: "We; my; our.",                                 cat: "Vocabulary" },
+    { kr: "~하고.",  en: "And (as a noun connector).",                   cat: "Grammar" },
+  ],
 };
 
 // ── GLOBAL STATE ──────────────────────────────────────────────────────────
 let mode         = 'study';
-let selectedLists = new Set(Object.keys(LISTS));
+let selectedLists = new Set();
 
 let quizQueue   = [];
 let quizIndex   = 0;
@@ -310,7 +337,7 @@ let composingChar = '';
 let submittedWrong = false;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
-const PUNCT = new Set(['.', '?', '!', ',', '·']);
+const PUNCT = new Set(['.', '?', '!', ',', '·', '~']);
 
 function isHangulSyllable(ch) {
   const c = ch.codePointAt(0);
@@ -352,7 +379,9 @@ function shuffle(arr) {
 function resetInputState(phrase) {
   currentPhrase = phrase;
   composingChar = '';
-  lockedSyls = getSyllables(phrase.kr).map(() => null);
+  committedSyls = [];
+  isComposing   = false;
+  lockedSyls    = getSyllables(phrase.kr).map(() => null);
 }
 
 // ── LIST SELECTOR ─────────────────────────────────────────────────────────
@@ -362,15 +391,13 @@ function renderListSelector() {
   if (!container) return;
   label.textContent = mode === 'study' ? 'Lists' : 'Quiz list';
   container.innerHTML = Object.keys(LISTS).map(name => {
-    const isSel  = selectedLists.has(name);
-    const isOnly = isSel && selectedLists.size === 1;
-    return `<button class="list-chip ${isSel ? 'selected' : ''} ${isOnly ? 'only-one' : ''}"
+    const isSel = selectedLists.has(name);
+    return `<button class="list-chip ${isSel ? 'selected' : ''}"
       onclick="toggleList('${name}')">${name}</button>`;
   }).join('');
 }
 
 function toggleList(name) {
-  if (selectedLists.has(name) && selectedLists.size === 1) return;
   if (selectedLists.has(name)) selectedLists.delete(name);
   else selectedLists.add(name);
   renderListSelector();
@@ -393,7 +420,11 @@ function switchMode(m) {
 function renderStudy() {
   const area      = document.getElementById('mainArea');
   const listNames = Object.keys(LISTS).filter(k => selectedLists.has(k));
-  area.innerHTML  = listNames.map(listName => {
+  if (listNames.length === 0) {
+    area.innerHTML = `<div style="text-align:center;padding:60px 0;color:#bbb;font-size:15px;letter-spacing:1px;">Select a set to begin.</div>`;
+    return;
+  }
+  area.innerHTML = listNames.map(listName => {
     const phrases = LISTS[listName];
     return `
       <div class="study-section">
@@ -488,23 +519,51 @@ function updateBlocks(typedSyls, state) {
 }
 
 // ── INPUT HANDLING ────────────────────────────────────────────────────────
+// We never read input.value during an active composition session on macOS,
+// because the value is unreliable mid-composition (syllables may appear
+// reordered or partially re-opened). Instead we maintain committedSyls
+// ourselves, only syncing from input.value on compositionend and plain input.
+let committedSyls = []; // syllables confirmed committed (not mid-composition)
+let isComposing   = false;
+
 function attachInput() {
   const input = document.getElementById('hiddenInput');
   if (!input) return;
-  input.value = '';
-  input.addEventListener('compositionstart',  () => { composingChar = ''; });
-  input.addEventListener('compositionupdate', e  => {
-    composingChar = e.data || '';
-    updateBlocks(getSyllables(input.value), 'typing');
-  });
-  input.addEventListener('compositionend',    () => { composingChar = ''; });
-  input.addEventListener('input', () => {
+  input.value   = '';
+  committedSyls = [];
+  isComposing   = false;
+
+  input.addEventListener('compositionstart', () => {
+    isComposing   = true;
     composingChar = '';
-    updateBlocks(getSyllables(input.value), 'typing');
-    const fb = document.getElementById('feedbackLine');
-    if (fb && fb.dataset.state === 'wrong') { fb.textContent = ''; fb.className = 'feedback'; fb.dataset.state = ''; }
   });
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitAnswer(); } });
+
+  input.addEventListener('compositionupdate', e => {
+    composingChar = e.data || '';
+    // Display committed syls + live composing char preview
+    updateBlocks(committedSyls, 'typing');
+  });
+
+  input.addEventListener('compositionend', e => {
+    isComposing   = false;
+    composingChar = '';
+    // On compositionend, input.value is now reliable — sync committedSyls from it
+    committedSyls = getSyllables(input.value);
+    updateBlocks(committedSyls, 'typing');
+    clearWrongFeedback();
+  });
+
+  input.addEventListener('input', () => {
+    if (isComposing) return; // handled by compositionupdate/end
+    composingChar = '';
+    committedSyls = getSyllables(input.value);
+    updateBlocks(committedSyls, 'typing');
+    clearWrongFeedback();
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); submitAnswer(); }
+  });
 
   const area = document.getElementById('blocksArea');
   if (area) area.addEventListener('click', () => input.focus());
@@ -517,11 +576,16 @@ function attachInput() {
   input.focus();
 }
 
+function clearWrongFeedback() {
+  const fb = document.getElementById('feedbackLine');
+  if (fb && fb.dataset.state === 'wrong') { fb.textContent = ''; fb.className = 'feedback'; fb.dataset.state = ''; }
+}
+
 // ── SUBMIT ────────────────────────────────────────────────────────────────
 function submitAnswer() {
   const input = document.getElementById('hiddenInput');
   if (!input) return;
-  const typedSyls  = getSyllables(input.value);
+  const typedSyls = committedSyls.slice(); // use our tracked committed state
   if (typedSyls.length === 0) return;
 
   const phrase     = currentPhrase;
@@ -558,13 +622,24 @@ function submitAnswer() {
     const fb = document.getElementById('feedbackLine');
     if (fb) { fb.textContent = '✗ 다시 해 보세요.'; fb.className = 'feedback wrong'; fb.dataset.state = 'wrong'; }
     quizResults.push({ phrase, correct: false });
-    setTimeout(() => { input.value = ''; updateBlocks([], 'typing'); input.focus(); }, 500);
+    setTimeout(() => {
+      input.value   = '';
+      committedSyls = [];
+      composingChar = '';
+      updateBlocks([], 'typing');
+      input.focus();
+    }, 500);
   }
 }
 
 // ── QUIZ MODE ─────────────────────────────────────────────────────────────
 function startQuiz() {
-  const phrases  = getActivePhrases();
+  const phrases = getActivePhrases();
+  if (phrases.length === 0) {
+    document.getElementById('scoreDisplay').textContent = '';
+    document.getElementById('mainArea').innerHTML = `<div style="text-align:center;padding:60px 0;color:#bbb;font-size:15px;letter-spacing:1px;">Select a set to begin.</div>`;
+    return;
+  }
   quizQueue      = shuffle(phrases.map((_, i) => i));
   quizIndex      = 0;
   quizScore      = 0;
