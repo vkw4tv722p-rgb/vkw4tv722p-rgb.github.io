@@ -320,16 +320,48 @@ const LISTS = {
     { kr: "우리.",   en: "We; my; our.",                                 cat: "Vocabulary" },
     { kr: "~하고.",  en: "And (as a noun connector).",                   cat: "Grammar" },
   ],
+  "1.2 B": [
+    { kr: "결혼하다.",      en: "To be married; to get married (dictionary form).", cat: "Vocabulary" },
+    { kr: "결혼했습니다.",  en: "To be married; to get married (past tense).",      cat: "Vocabulary" },
+    { kr: "나이.",          en: "Age.",                                             cat: "Vocabulary" },
+    { kr: "연세.",          en: "Age (honorific).",                                 cat: "Vocabulary" },
+    { kr: "남편.",          en: "A husband.",                                       cat: "Family" },
+    { kr: "부인.",          en: "A wife (honorific).",                              cat: "Family" },
+    { kr: "아내.",          en: "A wife.",                                          cat: "Family" },
+    { kr: "아이.",          en: "A child; a kid.",                                  cat: "Family" },
+    { kr: "딸.",            en: "A daughter.",                                      cat: "Family" },
+    { kr: "따님.",          en: "A daughter (honorific).",                          cat: "Family" },
+    { kr: "아들.",          en: "A son.",                                           cat: "Family" },
+    { kr: "아드님.",        en: "A son (honorific).",                               cat: "Family" },
+    { kr: "몇~.",           en: "How many ~",                                       cat: "Grammar" },
+    { kr: "무슨~.",         en: "What ~",                                           cat: "Grammar" },
+    { kr: "~살.",           en: "A counter for age.",                               cat: "Grammar" },
+    { kr: "~세.",           en: "A counter for age (Sino-Korean).",                 cat: "Grammar" },
+    { kr: "안+.",           en: "Not + verb.",                                      cat: "Grammar" },
+    { kr: "없다.",          en: "Not to exist; not to possess.",                    cat: "Vocabulary" },
+    { kr: "안 계시다.",     en: "Not to exist; not to possess (honorific).",        cat: "Vocabulary" },
+    { kr: "일.",            en: "Work (noun).",                                     cat: "Vocabulary" },
+    { kr: "일하다.",        en: "To work (verb).",                                  cat: "Vocabulary" },
+    { kr: "있다.",          en: "To exist; to possess.",                            cat: "Vocabulary" },
+    { kr: "계시다.",        en: "To exist; to possess (honorific).",                cat: "Vocabulary" },
+    { kr: "할머니.",        en: "A grandmother.",                                   cat: "Family" },
+    { kr: "할머님.",        en: "A grandmother (honorific).",                       cat: "Family" },
+    { kr: "할아버지.",      en: "A grandfather.",                                   cat: "Family" },
+    { kr: "할아버님.",      en: "A grandfather (honorific).",                       cat: "Family" },
+  ],
 };
 
 // ── GLOBAL STATE ──────────────────────────────────────────────────────────
 let mode         = 'study';
 let selectedLists = new Set();
 
-let quizQueue   = [];
-let quizIndex   = 0;
-let quizScore   = 0;
-let quizResults = [];
+let quizQueue        = [];
+let quizIndex        = 0;
+let quizScore        = 0;
+let quizResults      = [];
+let phraseStatus     = new Map();
+let currentQuizPhrases = [];
+let currentRoundKeys = new Set(); // kr keys in the current round — used to detect true first attempts
 
 let lockedSyls    = [];
 let currentPhrase = null;
@@ -337,7 +369,7 @@ let composingChar = '';
 let submittedWrong = false;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
-const PUNCT = new Set(['.', '?', '!', ',', '·', '~']);
+const PUNCT = new Set(['.', '?', '!', ',', '·', '~', '+']);
 
 function isHangulSyllable(ch) {
   const c = ch.codePointAt(0);
@@ -604,12 +636,15 @@ function submitAnswer() {
     const fb = document.getElementById('feedbackLine');
     if (fb) { fb.textContent = '✓ 맞았어요!'; fb.className = 'feedback correct'; fb.dataset.state = 'correct'; }
     quizScore++;
-    quizResults.push({ phrase, correct: true });
+    // If key still in currentRoundKeys, no wrong attempt happened this round → first
+    // If key already removed (wrong attempt occurred), → corrected
+    const isFirst = currentRoundKeys.has(phrase.kr);
+    phraseStatus.set(phrase.kr, { phrase, status: isFirst ? 'first' : 'corrected' });
+    currentRoundKeys.delete(phrase.kr);
     document.getElementById('scoreDisplay').textContent = `★ ${quizScore}`;
     setTimeout(() => advanceQuiz(), 1000);
   } else {
     submittedWrong = true;
-    // Lock newly-correct positions
     const newLocked = [...lockedSyls];
     let j = 0;
     targetSyls.forEach((targetCh, i) => {
@@ -621,7 +656,9 @@ function submitAnswer() {
     updateBlocks(typedSyls, 'wrong');
     const fb = document.getElementById('feedbackLine');
     if (fb) { fb.textContent = '✗ 다시 해 보세요.'; fb.className = 'feedback wrong'; fb.dataset.state = 'wrong'; }
-    quizResults.push({ phrase, correct: false });
+    // Mark as missed and remove from currentRoundKeys so a subsequent correct answer knows it was attempted this round
+    currentRoundKeys.delete(phrase.kr);
+    phraseStatus.set(phrase.kr, { phrase, status: 'missed' });
     setTimeout(() => {
       input.value   = '';
       committedSyls = [];
@@ -640,16 +677,19 @@ function startQuiz() {
     document.getElementById('mainArea').innerHTML = `<div style="text-align:center;padding:60px 0;color:#bbb;font-size:15px;letter-spacing:1px;">Select a set to begin.</div>`;
     return;
   }
-  quizQueue      = shuffle(phrases.map((_, i) => i));
-  quizIndex      = 0;
-  quizScore      = 0;
-  quizResults    = [];
+  currentQuizPhrases = phrases;
+  currentRoundKeys   = new Set(phrases.map(p => p.kr));
+  quizQueue     = shuffle(phrases.map((_, i) => i));
+  quizIndex     = 0;
+  quizScore     = 0;
+  quizResults   = []; // phraseStatus entries added in order of encounter
+  phraseStatus  = new Map();
   document.getElementById('scoreDisplay').textContent = `★ 0`;
   renderQuiz(phrases);
 }
 
 function renderQuiz(phrases) {
-  phrases = phrases || getActivePhrases();
+  phrases = phrases || currentQuizPhrases;
   if (quizIndex >= quizQueue.length) { renderEndScreen(); return; }
 
   const phrase       = phrases[quizQueue[quizIndex]];
@@ -694,7 +734,12 @@ function renderQuiz(phrases) {
 }
 
 function advanceQuiz() { quizIndex++; renderQuiz(); }
-function skipQuiz()    { quizResults.push({ phrase: currentPhrase, correct: false }); advanceQuiz(); }
+
+function skipQuiz() {
+  const phrase = currentPhrase;
+  if (!phraseStatus.has(phrase.kr)) phraseStatus.set(phrase.kr, { phrase, status: 'missed' });
+  advanceQuiz();
+}
 
 // ── END SCREEN ────────────────────────────────────────────────────────────
 function renderEndScreen() {
@@ -702,29 +747,84 @@ function renderEndScreen() {
   const pct       = Math.round((quizScore / total) * 100);
   const stampText = pct === 100 ? '만점!' : pct >= 70 ? '잘했어요' : '다시 해봐요';
 
+  const first     = [];
+  const corrected = [];
+  const missed    = [];
+
+  // Preserve encounter order using quizQueue
+  const phrases = currentQuizPhrases;
+  quizQueue.forEach(i => {
+    const phrase = phrases[i];
+    const entry  = phraseStatus.get(phrase.kr);
+    if (!entry || entry.status === 'missed') missed.push(phrase);
+    else if (entry.status === 'corrected')   corrected.push(phrase);
+    else                                     first.push(phrase);
+  });
+
+  const retryPhrases = [...corrected, ...missed];
+  const allMastered  = retryPhrases.length === 0;
+
+  function bucket(label, items, color) {
+    if (items.length === 0) return '';
+    return `
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${color};margin-bottom:6px">${label}</div>
+        ${items.map(p => `
+          <div class="breakdown-row">
+            <span class="kr">${p.kr}</span>
+            <span class="en">${p.en}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
   document.getElementById('mainArea').innerHTML = `
     <div class="end-screen">
       <div class="stamp">${stampText}</div>
       <div class="end-score">${quizScore} / ${total}</div>
       <div class="end-label">${pct}% correct</div>
       <div class="end-breakdown">
-        <div class="breakdown-row" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#bbb;font-weight:700">
-          <span>Phrase</span><span></span><span>Result</span>
-        </div>
-        ${quizResults.map(r => `
-          <div class="breakdown-row">
-            <span class="kr">${r.phrase.kr}</span>
-            <span class="en">${r.phrase.en}</span>
-            <span class="mark">${r.correct
-              ? '<span style="color:var(--correct)">✓</span>'
-              : '<span style="color:var(--red-stamp)">✗</span>'}</span>
-          </div>
-        `).join('')}
+        ${bucket('✓ First attempt', first, 'var(--correct)')}
+        ${bucket('◎ Corrected', corrected, 'var(--gold)')}
+        ${bucket('✗ Missed', missed, 'var(--red-stamp)')}
       </div>
-      <button class="restart-btn" onclick="startQuiz()">다시 하기 — Play Again</button>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        ${!allMastered ? `<button class="submit-btn" onclick="startRetry()">Practice missed &amp; corrected →</button>` : ''}
+        <button class="restart-btn" onclick="startQuiz()">다시 하기 — Full restart</button>
+      </div>
     </div>
   `;
   document.getElementById('scoreDisplay').textContent = '';
+}
+
+function startRetry() {
+  const phrases  = currentQuizPhrases;
+  const retrySet = [];
+
+  quizQueue.forEach(i => {
+    const phrase = phrases[i];
+    const entry  = phraseStatus.get(phrase.kr);
+    if (!entry || entry.status === 'missed' || entry.status === 'corrected') {
+      retrySet.push(phrase);
+    }
+  });
+
+  if (retrySet.length === 0) return;
+
+  // Reset scores but keep phraseStatus — mastered words stay mastered.
+  // Downgrade 'corrected' back to 'missed' so they must be first-attempt this round.
+  retrySet.forEach(p => {
+    phraseStatus.set(p.kr, { phrase: p, status: 'missed' });
+  });
+
+  currentQuizPhrases = retrySet;
+  currentRoundKeys   = new Set(retrySet.map(p => p.kr));
+  quizQueue  = shuffle(retrySet.map((_, i) => i));
+  quizIndex  = 0;
+  quizScore  = 0;
+  document.getElementById('scoreDisplay').textContent = `★ 0`;
+  renderQuiz(retrySet);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
