@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -349,6 +350,24 @@ const LISTS = {
     { kr: "할아버지.",      en: "A grandfather.",                                   cat: "Family" },
     { kr: "할아버님.",      en: "A grandfather (honorific).",                       cat: "Family" },
   ],
+  "1.2 C": [
+    { kr: "간호사.",   en: "A nurse; \"nursing professional\".",                    cat: "Occupations" },
+    { kr: "경찰관.",   en: "A police officer.",                                    cat: "Occupations" },
+    { kr: "공무원.",   en: "A public servant; a government employee.",             cat: "Occupations" },
+    { kr: "변호사.",   en: "A lawyer; \"advocating professional\".",               cat: "Occupations" },
+    { kr: "소방관.",   en: "A firefighter; \"firefighting officer\".",             cat: "Occupations" },
+    { kr: "의사.",     en: "A doctor; \"medical professional\".",                  cat: "Occupations" },
+    { kr: "주부.",     en: "A homemaker.",                                         cat: "Occupations" },
+    { kr: "은행원.",   en: "A bank teller; a bank clerk.",                         cat: "Occupations" },
+    { kr: "병원.",     en: "A hospital; a doctor's office; \"illness house\".",    cat: "Vocabulary" },
+    { kr: "사진.",     en: "A photo.",                                             cat: "Vocabulary" },
+    { kr: "살다.",     en: "To live; to reside.",                                  cat: "Vocabulary" },
+    { kr: "누구.",     en: "Who; whom.",                                           cat: "Vocabulary" },
+    { kr: "아주.",     en: "Very; extremely.",                                     cat: "Vocabulary" },
+    { kr: "젊다.",     en: "To be young; to be youthful.",                         cat: "Vocabulary" },
+    { kr: "~에서.",    en: "At; in; on (location marker).",                        cat: "Grammar" },
+    { kr: "-고.",      en: "And (conjunctive ending).",                            cat: "Grammar" },
+  ],
 };
 
 // ── GLOBAL STATE ──────────────────────────────────────────────────────────
@@ -369,7 +388,7 @@ let composingChar = '';
 let submittedWrong = false;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
-const PUNCT = new Set(['.', '?', '!', ',', '·', '~', '+']);
+const PUNCT = new Set(['.', '?', '!', ',', '·', '~', '+', '-']);
 
 function isHangulSyllable(ch) {
   const c = ch.codePointAt(0);
@@ -688,6 +707,25 @@ function startQuiz() {
   renderQuiz(phrases);
 }
 
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  // Strip punctuation chars before speaking
+  const clean = [...text].filter(ch => {
+    const c = ch.codePointAt(0);
+    return (c >= 0xAC00 && c <= 0xD7A3) || ch === ' ';
+  }).join('');
+  if (!clean) return;
+  window.speechSynthesis.cancel();
+  const utt  = new SpeechSynthesisUtterance(clean);
+  utt.lang   = 'ko-KR';
+  utt.rate   = 0.9;
+  // Prefer a Korean voice if available
+  const voices = window.speechSynthesis.getVoices();
+  const krVoice = voices.find(v => v.lang.startsWith('ko'));
+  if (krVoice) utt.voice = krVoice;
+  window.speechSynthesis.speak(utt);
+}
+
 function renderQuiz(phrases) {
   phrases = phrases || currentQuizPhrases;
   if (quizIndex >= quizQueue.length) { renderEndScreen(); return; }
@@ -728,6 +766,7 @@ function renderQuiz(phrases) {
 
     <div class="action-row">
       <button class="ghost-btn" onclick="skipQuiz()">Skip →</button>
+      <button class="ghost-btn" onclick="speak(currentPhrase.kr)">🔊 Listen</button>
     </div>
   `;
   attachInput();
