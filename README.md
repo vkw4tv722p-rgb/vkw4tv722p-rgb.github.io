@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>한글 쓰기 — Korean Spelling Practice</title>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Quicksand:wght@400;600;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -53,24 +53,29 @@
     color: var(--ink);
     font-family: 'Quicksand', sans-serif;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    overscroll-behavior: none;
   }
 
   .app {
     position: relative;
     width: 100%;
     max-width: 580px;
-    padding: 0 20px 60px;
+    padding: 0 20px 20px;
+    max-height: var(--app-max-height, none);
+    overflow-y: auto;
   }
 
   /* ── HEADER ── */
   header { padding: 28px 0 16px; display: flex; align-items: baseline; gap: 12px; }
   .title-kr { font-family: 'Nanum Myeongjo', serif; font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: 2px; }
   .title-en { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
-  .score-badge { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 1px; }
+  .score-badge { font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 1px; }
   .theme-toggle {
+    margin-left: auto;
     background: none; border: 1.5px solid var(--ruled); border-radius: 50%;
     width: 32px; height: 32px; font-size: 15px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
@@ -248,8 +253,8 @@
   <header>
     <span class="title-kr">한글 쓰기</span>
     <span class="title-en">Spelling Practice</span>
-    <span class="score-badge" id="scoreDisplay"></span>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
+    <span class="score-badge" id="scoreDisplay" style="display:none"></span>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🔆</button>
   </header>
 
   <div class="mode-tabs">
@@ -718,14 +723,14 @@ function attachInput() {
   });
 
   const area = document.getElementById('blocksArea');
-  if (area) area.addEventListener('click', () => input.focus());
+  if (area) area.addEventListener('click', () => input.focus({ preventScroll: true }));
 
   const hint = document.getElementById('tapHint');
   if (hint) {
     input.addEventListener('focus', () => hint.style.opacity = '0');
     input.addEventListener('blur',  () => hint.style.opacity = '1');
   }
-  input.focus();
+  input.focus({ preventScroll: true });
 }
 
 function clearWrongFeedback() {
@@ -784,7 +789,7 @@ function submitAnswer() {
       committedSyls = [];
       composingChar = '';
       updateBlocks([], 'typing');
-      input.focus();
+      input.focus({ preventScroll: true });
     }, 500);
   }
 }
@@ -973,7 +978,7 @@ let isDarkMode = false;
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
   const btn = document.getElementById('themeToggle');
-  if (btn) btn.textContent = isDarkMode ? '☀️' : '🌙';
+  if (btn) btn.textContent = '🔆';
 }
 
 function toggleTheme() {
@@ -981,8 +986,24 @@ function toggleTheme() {
   applyTheme();
 }
 
+// ── VIEWPORT (keyboard-aware sizing) ────────────────────────────────────────
+// On mobile, opening the OS keyboard shrinks the visual viewport. We track
+// that height and cap the app container to it so content compresses to fit
+// instead of the page auto-scrolling to keep the focused input visible.
+function syncViewportHeight() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  document.documentElement.style.setProperty('--app-max-height', vv.height + 'px');
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', syncViewportHeight);
+  window.visualViewport.addEventListener('scroll', syncViewportHeight);
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  syncViewportHeight();
   // Default to system preference if available
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     isDarkMode = true;
@@ -994,3 +1015,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
