@@ -1,4 +1,4 @@
-<babobabobabo>
+<!강서준은 바보예요>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -21,7 +21,32 @@
     --locked:     #1a5c38;
     --locked-bg:  #d4eddf;
     --gold:       #b8860b;
+    --card-bg:    #ffffff;
+    --muted:      #888;
+    --muted-2:    #bbb;
+    --red-stamp-dim: rgba(192,57,43,0.2);
   }
+
+  [data-theme="dark"] {
+    --ink:        #e8e3f0;
+    --paper:      #14121f;
+    --ruled:      #2c2940;
+    --red-stamp:  #e0697a;
+    --red-light:  #3a2228;
+    --blue-ink:   #7b9ce8;
+    --blue-light: #232c47;
+    --correct:    #5fd394;
+    --correct-bg: #1a3328;
+    --locked:     #5fd394;
+    --locked-bg:  #16291f;
+    --gold:       #e0c068;
+    --card-bg:    #1c1930;
+    --muted:      #8a84a0;
+    --muted-2:    #5c5670;
+    --red-stamp-dim: rgba(224,105,122,0.25);
+  }
+
+  body { transition: background 0.2s ease, color 0.2s ease; }
 
   body {
     background: var(--paper);
@@ -43,8 +68,16 @@
   /* ── HEADER ── */
   header { padding: 28px 0 16px; display: flex; align-items: baseline; gap: 12px; }
   .title-kr { font-family: 'Nanum Myeongjo', serif; font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: 2px; }
-  .title-en { font-size: 12px; color: #888; letter-spacing: 1px; text-transform: uppercase; }
+  .title-en { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
   .score-badge { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 1px; }
+  .theme-toggle {
+    background: none; border: 1.5px solid var(--ruled); border-radius: 50%;
+    width: 32px; height: 32px; font-size: 15px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover { border-color: var(--blue-ink); background: var(--blue-light); }
 
   /* ── MODE TABS ── */
   .mode-tabs { display: flex; margin-bottom: 16px; border-bottom: 2px solid var(--ruled); }
@@ -53,13 +86,13 @@
     font-family: 'Quicksand', sans-serif; font-size: 13px; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
     background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px;
-    cursor: pointer; color: #aaa; transition: color 0.2s, border-color 0.2s;
+    cursor: pointer; color: var(--muted-2); transition: color 0.2s, border-color 0.2s;
   }
   .mode-tab.active { color: var(--blue-ink); border-bottom-color: var(--blue-ink); }
 
   /* ── LIST SELECTOR ── */
   .selector-wrap { margin-bottom: 20px; }
-  .selector-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #bbb; margin-bottom: 8px; }
+  .selector-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted-2); margin-bottom: 8px; }
   .list-chips { display: flex; gap: 8px; flex-wrap: wrap; }
   .list-chip {
     padding: 6px 14px; border-radius: 20px;
@@ -78,11 +111,11 @@
     font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
     color: var(--red-stamp); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
   }
-  .category-label::after { content: ''; flex: 1; height: 1px; background: rgba(192,57,43,0.2); }
+  .category-label::after { content: ''; flex: 1; height: 1px; background: var(--red-stamp-dim, rgba(192,57,43,0.2)); }
 
   /* ── PROMPT CARD ── */
   .prompt-card {
-    background: #fff; border: 1px solid var(--ruled); border-radius: 4px;
+    background: var(--card-bg); border: 1px solid var(--ruled); border-radius: 4px;
     padding: 22px 24px; margin-bottom: 24px; box-shadow: 2px 3px 0 var(--ruled); position: relative;
   }
   .prompt-card::before {
@@ -107,21 +140,21 @@
   /* Punctuation shown between/after blocks */
   .block-punct {
     font-family: 'Gowun Dodum', sans-serif;
-    font-size: 26px; color: #aaa;
+    font-size: 26px; color: var(--muted-2);
     line-height: 58px; flex-shrink: 0;
     user-select: none; margin: 0 1px;
   }
 
   .syl-block {
     width: 58px; height: 58px; flex-shrink: 0;
-    border: 2px solid var(--ruled); border-radius: 4px; background: #fff;
+    border: 2px solid var(--ruled); border-radius: 4px; background: var(--card-bg);
     display: flex; align-items: center; justify-content: center;
     font-family: 'Gowun Dodum', sans-serif; font-size: 28px; color: var(--blue-ink);
     box-shadow: 2px 2px 0 var(--ruled);
     transition: border-color 0.12s, background 0.12s, color 0.12s;
     user-select: none;
   }
-  .syl-block.empty   { border-color: var(--ruled); background: #fff; color: transparent; }
+  .syl-block.empty   { border-color: var(--ruled); background: var(--card-bg); color: transparent; }
   .syl-block.active-block { border-color: var(--blue-ink); background: var(--blue-light); box-shadow: 2px 2px 0 var(--blue-ink); }
   .syl-block.filled  { border-color: var(--blue-ink); background: var(--blue-light); }
   .syl-block.locked  { border-color: var(--locked); background: var(--locked-bg); color: var(--locked); position: relative; }
@@ -143,7 +176,7 @@
     100%{ transform: scale(1); }
   }
 
-  .tap-hint { font-size: 11px; color: #bbb; margin-top: 8px; letter-spacing: 0.3px; transition: opacity 0.2s; }
+  .tap-hint { font-size: 11px; color: var(--muted-2); margin-top: 8px; letter-spacing: 0.3px; transition: opacity 0.2s; }
 
   /* ── BUTTONS ── */
   .submit-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -163,13 +196,13 @@
   .ghost-btn {
     padding: 7px 14px; background: none; border: 1.5px solid var(--ruled); border-radius: 4px;
     font-family: 'Quicksand', sans-serif; font-size: 12px; font-weight: 600;
-    color: #888; cursor: pointer; letter-spacing: 0.5px; transition: border-color 0.15s, color 0.15s;
+    color: var(--muted); cursor: pointer; letter-spacing: 0.5px; transition: border-color 0.15s, color 0.15s;
   }
-  .ghost-btn:hover { border-color: #aaa; color: var(--ink); }
+  .ghost-btn:hover { border-color: var(--muted-2); color: var(--ink); }
 
   /* ── PROGRESS ── */
   .progress-wrap { margin-bottom: 18px; }
-  .progress-meta { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; font-weight: 600; letter-spacing: 1px; margin-bottom: 6px; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-2); font-weight: 600; letter-spacing: 1px; margin-bottom: 6px; }
   .progress-track { height: 4px; background: var(--ruled); border-radius: 2px; overflow: hidden; }
   .progress-fill { height: 100%; background: var(--blue-ink); border-radius: 2px; transition: width 0.4s ease; }
 
@@ -177,12 +210,12 @@
   .study-section { margin-bottom: 28px; }
   .study-section-title {
     font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--red-stamp); padding-bottom: 8px; border-bottom: 1px solid rgba(192,57,43,0.2);
+    color: var(--red-stamp); padding-bottom: 8px; border-bottom: 1px solid var(--red-stamp-dim, rgba(192,57,43,0.2));
     margin-bottom: 0;
   }
   .study-row { display: flex; align-items: baseline; padding: 10px 4px; gap: 16px; border-bottom: 1px solid var(--ruled); }
   .study-kr { font-family: 'Gowun Dodum', sans-serif; font-size: 19px; color: var(--blue-ink); flex-shrink: 0; min-width: 160px; }
-  .study-en { font-size: 13px; color: #888; flex: 1; }
+  .study-en { font-size: 13px; color: var(--muted); flex: 1; }
 
   /* ── END SCREEN ── */
   .end-screen { text-align: center; padding: 40px 0; }
@@ -192,15 +225,15 @@
     color: var(--red-stamp); letter-spacing: 6px; transform: rotate(-4deg); margin-bottom: 24px; opacity: 0.85;
   }
   .end-score { font-size: 48px; font-weight: 700; color: var(--ink); line-height: 1; margin-bottom: 6px; }
-  .end-label { font-size: 13px; color: #999; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 28px; }
+  .end-label { font-size: 13px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 28px; }
   .end-breakdown {
-    text-align: left; background: #fff; border: 1px solid var(--ruled);
+    text-align: left; background: var(--card-bg); border: 1px solid var(--ruled);
     border-radius: 4px; padding: 16px 20px; margin-bottom: 24px; box-shadow: 2px 2px 0 var(--ruled);
   }
   .breakdown-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--ruled); gap: 8px; }
   .breakdown-row:last-child { border-bottom: none; }
   .breakdown-row .kr { font-family: 'Gowun Dodum', sans-serif; font-size: 15px; color: var(--blue-ink); flex-shrink: 0; }
-  .breakdown-row .en { color: #999; font-size: 12px; flex: 1; }
+  .breakdown-row .en { color: var(--muted); font-size: 12px; flex: 1; }
   .breakdown-row .mark { font-size: 14px; flex-shrink: 0; }
   .restart-btn {
     padding: 12px 32px; background: var(--red-stamp); color: #fff; border: none; border-radius: 4px;
@@ -216,6 +249,7 @@
     <span class="title-kr">한글 쓰기</span>
     <span class="title-en">Spelling Practice</span>
     <span class="score-badge" id="scoreDisplay"></span>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
   </header>
 
   <div class="mode-tabs">
@@ -933,8 +967,27 @@ function startRetry() {
   renderQuiz(retrySet);
 }
 
+// ── THEME ─────────────────────────────────────────────────────────────────
+let isDarkMode = false;
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = isDarkMode ? '☀️' : '🌙';
+}
+
+function toggleTheme() {
+  isDarkMode = !isDarkMode;
+  applyTheme();
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Default to system preference if available
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    isDarkMode = true;
+  }
+  applyTheme();
   renderListSelector();
   renderStudy();
 });
