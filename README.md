@@ -1,3 +1,4 @@
+<!요즘 어떻게 지내요?>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -132,10 +133,15 @@
   .blocks-area { position: relative; margin-bottom: 20px; cursor: text; }
   .hidden-input { position: absolute; opacity: 0; width: 1px; height: 1px; top: 0; left: 0; pointer-events: none; font-size: 16px; }
 
-  /* blocks-row uses flex with wrap; space and punct tokens sit inline */
+  /* blocks-row uses flex with wrap; space and punct tokens sit inline.
+     row-gap is larger than column-gap to leave room for the absolutely
+     positioned per-syllable score label (used in Pronounce mode) sitting
+     just below each block — otherwise a wrapped second row of blocks
+     overlaps and hides that label. */
   .blocks-row {
     display: flex; flex-wrap: wrap;
-    gap: 6px; align-items: center; min-height: 68px;
+    column-gap: 6px; row-gap: 26px;
+    align-items: center; min-height: 68px;
   }
 
   /* A space between words */
@@ -555,6 +561,9 @@ const PRONOUNCE_PROXY_URL = "https://korean-pronunciation-proxy.cgmn9jdtsh.worke
 let pronouncePhrases  = [];
 let pronounceIndex    = 0;
 let pronouncePhrase   = null;
+let pronounceQueue    = [];           // shuffled indices into pronouncePhrases
+let pronounceQueuePos = 0;            // position within pronounceQueue
+let pronounceScores   = new Map();    // kr -> best score seen this round
 let mediaRecorder     = null;
 let recordedChunks    = [];
 let isRecording       = false;
@@ -1049,31 +1058,38 @@ function startPronounce() {
     document.getElementById('mainArea').innerHTML = `<div style="text-align:center;padding:60px 0;color:var(--muted-2);font-size:15px;letter-spacing:1px;">Select a set to begin.</div>`;
     return;
   }
-  pronouncePhrases = phrases;
-  pronounceIndex    = Math.floor(Math.random() * phrases.length);
-  pronouncePhrase   = phrases[pronounceIndex];
+  pronouncePhrases  = phrases;
+  pronounceQueue    = shuffle(phrases.map((_, i) => i));
+  pronounceQueuePos = 0;
+  pronounceScores   = new Map();
+  pronouncePhrase   = phrases[pronounceQueue[0]];
   document.getElementById('scoreDisplay').textContent = '';
   renderPronounce();
 }
 
 function nextPronounceWord() {
-  if (pronouncePhrases.length === 0) return;
-  // Avoid repeating the same word twice in a row if list has more than 1 entry
-  let next = pronouncePhrase;
-  if (pronouncePhrases.length > 1) {
-    while (next === pronouncePhrase) {
-      next = pronouncePhrases[Math.floor(Math.random() * pronouncePhrases.length)];
-    }
+  pronounceQueuePos++;
+  if (pronounceQueuePos >= pronounceQueue.length) {
+    renderPronounceSummary();
+    return;
   }
-  pronouncePhrase = next;
+  pronouncePhrase = pronouncePhrases[pronounceQueue[pronounceQueuePos]];
   renderPronounce();
 }
 
 function renderPronounce() {
   const phrase = pronouncePhrase;
   const { html: blocksHTML } = buildBlocksHTML(phrase.kr);
+  const pct = Math.round((pronounceQueuePos / pronounceQueue.length) * 100);
 
   document.getElementById('mainArea').innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span>${pronounceQueuePos} / ${pronounceQueue.length}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+
     <div class="category-label">${phrase.cat}</div>
 
     <div class="prompt-card">
@@ -1092,15 +1108,72 @@ function renderPronounce() {
       <div class="pronounce-status" id="pronounceStatus"></div>
 
       <div class="action-row" style="justify-content:center;margin-top:10px">
-        <button class="ghost-btn" onclick="nextPronounceWord()">Next word →</button>
         <button class="ghost-btn" onclick="speak(currentKrTarget())">🔊 Listen</button>
+        <button class="ghost-btn" onclick="retryPronounceWord()">↻ Retry</button>
+        <button class="submit-btn" onclick="nextPronounceWord()">${pronounceQueuePos === pronounceQueue.length - 1 ? 'Finish' : 'Next word'} →</button>
       </div>
     </div>
   `;
 }
 
+function retryPronounceWord() {
+  // Re-render the same word fresh, so the user can record again
+  renderPronounce();
+}
+
 function currentKrTarget() {
   return pronouncePhrase ? pronouncePhrase.kr : '';
+}
+
+const PRONOUNCE_MASTERY_THRESHOLD = 90;
+
+function renderPronounceSummary() {
+  const total = pronounceQueue.length;
+  const results = pronounceQueue.map(i => {
+    const phrase = pronouncePhrases[i];
+    const score = pronounceScores.get(phrase.kr) ?? null; // null = never attempted
+    return { phrase, score };
+  });
+
+  const mastered = results.filter(r => r.score !== null && r.score >= PRONOUNCE_MASTERY_THRESHOLD);
+  const needsPractice = results.filter(r => r.score === null || r.score < PRONOUNCE_MASTERY_THRESHOLD);
+
+  const attempted = results.filter(r => r.score !== null);
+  const avgScore = attempted.length > 0
+    ? Math.round(attempted.reduce((sum, r) => sum + r.score, 0) / attempted.length)
+    : 0;
+
+  const stampText = mastered.length === total ? '만점!' : mastered.length / total >= 0.7 ? '잘했어요' : '다시 해봐요';
+
+  function bucket(label, items, color) {
+    if (items.length === 0) return '';
+    return `
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${color};margin-bottom:6px">${label}</div>
+        ${items.map(r => `
+          <div class="breakdown-row">
+            <span class="kr">${r.phrase.kr}</span>
+            <span class="en">${r.phrase.en}</span>
+            <span class="mark" style="font-weight:700;color:${r.score === null ? 'var(--muted-2)' : scoreToColor(r.score)}">${r.score === null ? '—' : r.score}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="end-screen">
+      <div class="stamp">${stampText}</div>
+      <div class="end-score">${mastered.length} / ${total}</div>
+      <div class="end-label">words mastered (90+) · avg score ${avgScore}</div>
+      <div class="end-breakdown">
+        ${bucket('✓ Mastered (90+)', mastered, 'var(--correct)')}
+        ${bucket('◎ Needs practice', needsPractice, 'var(--red-stamp)')}
+      </div>
+      <button class="restart-btn" onclick="startPronounce()">다시 하기 — Play Again</button>
+    </div>
+  `;
+  document.getElementById('scoreDisplay').textContent = '';
 }
 
 // Map a 0-100 score to a red→yellow→green color
@@ -1353,6 +1426,11 @@ function applyPronunciationResult(result) {
     statusEl.style.fontSize = '13px';
     statusEl.textContent = '';
   }
+
+  // Track the best (highest) score seen for this phrase across retries this round
+  const key = pronouncePhrase.kr;
+  const prevBest = pronounceScores.get(key) ?? -1;
+  if (overall > prevBest) pronounceScores.set(key, overall);
 
   // Map per-syllable scores onto syllable blocks.
   // Azure returns a Syllables[] array within each word with real per-syllable
