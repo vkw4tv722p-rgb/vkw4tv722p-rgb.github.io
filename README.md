@@ -1,4 +1,4 @@
-<!강서준은 바보예요>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -222,6 +222,53 @@
   .study-kr { font-family: 'Gowun Dodum', sans-serif; font-size: 19px; color: var(--blue-ink); flex-shrink: 0; min-width: 160px; }
   .study-en { font-size: 13px; color: var(--muted); flex: 1; }
 
+  /* ── PRONOUNCE MODE ── */
+  .pronounce-card {
+    text-align: center;
+    padding: 8px 0 20px;
+  }
+  .record-btn {
+    width: 84px; height: 84px;
+    border-radius: 50%;
+    border: none;
+    background: var(--red-stamp);
+    color: #fff;
+    font-size: 30px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin: 8px auto 14px;
+    box-shadow: 0 4px 12px rgba(192,57,43,0.3);
+    transition: transform 0.15s, background 0.15s;
+  }
+  .record-btn:hover { transform: scale(1.05); }
+  .record-btn.recording {
+    background: var(--red-stamp);
+    animation: pulse-record 1.2s ease infinite;
+  }
+  @keyframes pulse-record {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.5); }
+    50%      { box-shadow: 0 0 0 14px rgba(192,57,43,0); }
+  }
+  .record-label {
+    font-size: 12px; color: var(--muted); letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .pronounce-score {
+    font-size: 44px; font-weight: 700;
+    margin: 14px 0 4px;
+  }
+  .pronounce-score-label {
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 18px;
+  }
+  .syl-block.score-grad {
+    /* background/color set inline per-block based on score */
+    border-width: 2px;
+  }
+  .pronounce-status {
+    font-size: 13px; color: var(--muted); min-height: 20px; margin-top: 8px;
+  }
+
   /* ── END SCREEN ── */
   .end-screen { text-align: center; padding: 40px 0; }
   .stamp {
@@ -260,6 +307,7 @@
   <div class="mode-tabs">
     <button class="mode-tab active" id="tabStudy" onclick="switchMode('study')">Study</button>
     <button class="mode-tab"        id="tabQuiz"  onclick="switchMode('quiz')">Quiz</button>
+    <button class="mode-tab"        id="tabPronounce" onclick="switchMode('pronounce')">Pronounce</button>
   </div>
 
   <div class="selector-wrap">
@@ -493,6 +541,15 @@ let currentPhrase = null;
 let composingChar = '';
 let submittedWrong = false;
 
+// ── PRONOUNCE MODE STATE ─────────────────────────────────────────────────
+const PRONOUNCE_PROXY_URL = "https://korean-pronunciation-proxy.cgmn9jdtsh.workers.dev";
+let pronouncePhrases  = [];
+let pronounceIndex    = 0;
+let pronouncePhrase   = null;
+let mediaRecorder     = null;
+let recordedChunks    = [];
+let isRecording       = false;
+
 // ── HELPERS ───────────────────────────────────────────────────────────────
 const PUNCT = new Set(['.', '?', '!', ',', '·', '~', '+', '-']);
 
@@ -546,7 +603,7 @@ function renderListSelector() {
   const container = document.getElementById('listSelector');
   const label     = document.getElementById('selectorLabel');
   if (!container) return;
-  label.textContent = mode === 'study' ? 'Lists' : 'Quiz list';
+  label.textContent = mode === 'study' ? 'Lists' : mode === 'quiz' ? 'Quiz list' : 'Practice list';
   container.innerHTML = Object.keys(LISTS).map(name => {
     const isSel = selectedLists.has(name);
     return `<button class="list-chip ${isSel ? 'selected' : ''}"
@@ -559,7 +616,8 @@ function toggleList(name) {
   else selectedLists.add(name);
   renderListSelector();
   if (mode === 'study') renderStudy();
-  else startQuiz();
+  else if (mode === 'quiz') startQuiz();
+  else startPronounce();
 }
 
 // ── MODE SWITCH ───────────────────────────────────────────────────────────
@@ -567,10 +625,12 @@ function switchMode(m) {
   mode = m;
   document.getElementById('tabStudy').classList.toggle('active', m === 'study');
   document.getElementById('tabQuiz').classList.toggle('active',  m === 'quiz');
+  document.getElementById('tabPronounce').classList.toggle('active', m === 'pronounce');
   document.getElementById('scoreDisplay').textContent = '';
   renderListSelector();
   if (m === 'study') renderStudy();
-  else startQuiz();
+  else if (m === 'quiz') startQuiz();
+  else startPronounce();
 }
 
 // ── STUDY MODE ────────────────────────────────────────────────────────────
@@ -972,6 +1032,235 @@ function startRetry() {
   renderQuiz(retrySet);
 }
 
+// ── PRONOUNCE MODE ────────────────────────────────────────────────────────
+function startPronounce() {
+  const phrases = getActivePhrases();
+  if (phrases.length === 0) {
+    document.getElementById('scoreDisplay').textContent = '';
+    document.getElementById('mainArea').innerHTML = `<div style="text-align:center;padding:60px 0;color:var(--muted-2);font-size:15px;letter-spacing:1px;">Select a set to begin.</div>`;
+    return;
+  }
+  pronouncePhrases = phrases;
+  pronounceIndex    = Math.floor(Math.random() * phrases.length);
+  pronouncePhrase   = phrases[pronounceIndex];
+  document.getElementById('scoreDisplay').textContent = '';
+  renderPronounce();
+}
+
+function nextPronounceWord() {
+  if (pronouncePhrases.length === 0) return;
+  // Avoid repeating the same word twice in a row if list has more than 1 entry
+  let next = pronouncePhrase;
+  if (pronouncePhrases.length > 1) {
+    while (next === pronouncePhrase) {
+      next = pronouncePhrases[Math.floor(Math.random() * pronouncePhrases.length)];
+    }
+  }
+  pronouncePhrase = next;
+  renderPronounce();
+}
+
+function renderPronounce() {
+  const phrase = pronouncePhrase;
+  const { html: blocksHTML } = buildBlocksHTML(phrase.kr);
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="category-label">${phrase.cat}</div>
+
+    <div class="prompt-card">
+      <div class="meaning-text">${phrase.en}</div>
+    </div>
+
+    <div class="pronounce-card">
+      <div class="blocks-row" id="pronounceBlocks" style="justify-content:center">${blocksHTML}</div>
+
+      <div class="record-label" id="recordLabel">Tap to record</div>
+      <button class="record-btn" id="recordBtn" onclick="toggleRecording()">🎙️</button>
+
+      <div class="pronounce-score" id="pronounceScoreNum" style="display:none"></div>
+      <div class="pronounce-score-label" id="pronounceScoreLabel" style="display:none">Overall score</div>
+
+      <div class="pronounce-status" id="pronounceStatus"></div>
+
+      <div class="action-row" style="justify-content:center;margin-top:10px">
+        <button class="ghost-btn" onclick="nextPronounceWord()">Next word →</button>
+        <button class="ghost-btn" onclick="speak(currentKrTarget())">🔊 Listen</button>
+      </div>
+    </div>
+  `;
+}
+
+function currentKrTarget() {
+  return pronouncePhrase ? pronouncePhrase.kr : '';
+}
+
+// Map a 0-100 score to a red→yellow→green color
+function scoreToColor(score) {
+  // Clamp
+  const s = Math.max(0, Math.min(100, score));
+  // 0 = red (0,  74%, 47%) ... 50 = yellow (45, 90%, 55%) ... 100 = green (145, 55%, 40%)
+  let hue;
+  if (s <= 50) {
+    hue = (s / 50) * 45; // 0 -> 45 (red to yellow)
+  } else {
+    hue = 45 + ((s - 50) / 50) * 100; // 45 -> 145 (yellow to green)
+  }
+  return `hsl(${hue}, 70%, 45%)`;
+}
+
+function scoreToBgColor(score) {
+  const s = Math.max(0, Math.min(100, score));
+  let hue;
+  if (s <= 50) hue = (s / 50) * 45;
+  else hue = 45 + ((s - 50) / 50) * 100;
+  return `hsl(${hue}, 70%, 94%)`;
+}
+
+async function toggleRecording() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    await startRecording();
+  }
+}
+
+async function startRecording() {
+  const statusEl = document.getElementById('pronounceStatus');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType: pickSupportedMimeType() });
+    mediaRecorder.addEventListener('dataavailable', e => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    });
+    mediaRecorder.addEventListener('stop', () => {
+      stream.getTracks().forEach(t => t.stop());
+      handleRecordingComplete();
+    });
+    mediaRecorder.start();
+    isRecording = true;
+    document.getElementById('recordBtn').classList.add('recording');
+    document.getElementById('recordLabel').textContent = 'Recording… tap to stop';
+    if (statusEl) statusEl.textContent = '';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = 'Microphone access denied or unavailable.';
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop();
+    isRecording = false;
+    document.getElementById('recordBtn').classList.remove('recording');
+    document.getElementById('recordLabel').textContent = 'Processing…';
+  }
+}
+
+function pickSupportedMimeType() {
+  const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+  for (const type of candidates) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(type)) return type;
+  }
+  return '';
+}
+
+async function handleRecordingComplete() {
+  const statusEl = document.getElementById('pronounceStatus');
+  const recordLabel = document.getElementById('recordLabel');
+  if (recordedChunks.length === 0) {
+    if (statusEl) statusEl.textContent = 'No audio captured — try again.';
+    if (recordLabel) recordLabel.textContent = 'Tap to record';
+    return;
+  }
+
+  const blob = new Blob(recordedChunks, { type: recordedChunks[0].type || 'audio/webm' });
+
+  try {
+    if (statusEl) statusEl.textContent = 'Scoring your pronunciation…';
+    const audioBase64 = await blobToBase64(blob);
+    const referenceText = pronouncePhrase.kr.replace(/[~+\-.?!,]/g, '').trim();
+
+    const response = await fetch(PRONOUNCE_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ referenceText, audioBase64 }),
+    });
+
+    const result = await response.json();
+    applyPronunciationResult(result);
+  } catch (err) {
+    if (statusEl) statusEl.textContent = 'Error scoring pronunciation. Try again.';
+  } finally {
+    if (recordLabel) recordLabel.textContent = 'Tap to record';
+  }
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      // reader.result is a data URL like "data:audio/webm;base64,XXXX"
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function applyPronunciationResult(result) {
+  const statusEl = document.getElementById('pronounceStatus');
+  const scoreNumEl = document.getElementById('pronounceScoreNum');
+  const scoreLabelEl = document.getElementById('pronounceScoreLabel');
+
+  // Azure's response shape: NBest[0].PronunciationAssessment.PronScore, and
+  // NBest[0].Words[].PronunciationAssessment.AccuracyScore for per-word scores
+  const nbest = result?.NBest?.[0];
+  if (!nbest) {
+    if (statusEl) statusEl.textContent = 'No result returned — check your recording and try again.';
+    return;
+  }
+
+  const overall = Math.round(nbest.PronunciationAssessment?.PronScore ?? 0);
+  if (scoreNumEl) {
+    scoreNumEl.textContent = overall;
+    scoreNumEl.style.display = 'block';
+    scoreNumEl.style.color = scoreToColor(overall);
+  }
+  if (scoreLabelEl) scoreLabelEl.style.display = 'block';
+  if (statusEl) statusEl.textContent = '';
+
+  // Map word-level scores onto syllable blocks.
+  // Azure gives per-word scores; each "word" in Korean without spaces may map
+  // to multiple syllable blocks, so we distribute each word's score across
+  // the syllables it covers, in order.
+  const words = nbest.Words || [];
+  const syllables = getSyllables(pronouncePhrase.kr);
+  const perSylScores = [];
+
+  words.forEach(w => {
+    const wordSyls = getSyllables(w.Word || '');
+    const score = w.PronunciationAssessment?.AccuracyScore ?? 0;
+    wordSyls.forEach(() => perSylScores.push(score));
+  });
+
+  // Fallback: if word/syllable counts don't line up, just spread overall score
+  const finalScores = (perSylScores.length === syllables.length)
+    ? perSylScores
+    : syllables.map(() => overall);
+
+  syllables.forEach((ch, i) => {
+    const block = document.getElementById('block-' + i);
+    if (!block) return;
+    const score = finalScores[i];
+    block.textContent = ch;
+    block.className = 'syl-block score-grad';
+    block.style.borderColor = scoreToColor(score);
+    block.style.background  = scoreToBgColor(score);
+    block.style.color       = scoreToColor(score);
+  });
+}
+
 // ── THEME ─────────────────────────────────────────────────────────────────
 let isDarkMode = false;
 
@@ -1015,4 +1304,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
