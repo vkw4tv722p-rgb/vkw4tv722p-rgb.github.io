@@ -1217,7 +1217,14 @@ function applyPronunciationResult(result) {
   // NBest[0].Words[].PronunciationAssessment.AccuracyScore for per-word scores
   const nbest = result?.NBest?.[0];
   if (!nbest) {
-    if (statusEl) statusEl.textContent = 'No result returned — check your recording and try again.';
+    // TEMP DEBUG: show the raw response so we can diagnose the actual issue
+    if (statusEl) {
+      statusEl.style.textAlign = 'left';
+      statusEl.style.whiteSpace = 'pre-wrap';
+      statusEl.style.fontSize = '11px';
+      statusEl.style.wordBreak = 'break-word';
+      statusEl.textContent = 'DEBUG — raw response:\n' + JSON.stringify(result, null, 2);
+    }
     return;
   }
 
