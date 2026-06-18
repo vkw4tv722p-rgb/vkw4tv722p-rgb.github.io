@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYP html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1235,7 +1235,18 @@ function applyPronunciationResult(result) {
     scoreNumEl.style.color = scoreToColor(overall);
   }
   if (scoreLabelEl) scoreLabelEl.style.display = 'block';
-  if (statusEl) statusEl.textContent = '';
+  // TEMP DEBUG: show recognition status + recognized text + raw words below the score
+  if (statusEl) {
+    statusEl.style.textAlign = 'left';
+    statusEl.style.whiteSpace = 'pre-wrap';
+    statusEl.style.fontSize = '11px';
+    statusEl.style.wordBreak = 'break-word';
+    statusEl.textContent =
+      'DEBUG\n' +
+      'RecognitionStatus: ' + (result.RecognitionStatus ?? 'n/a') + '\n' +
+      'DisplayText/recognized: ' + (result.DisplayText ?? nbest.Display ?? nbest.Lexical ?? 'n/a') + '\n' +
+      'Words: ' + JSON.stringify(nbest.Words ?? [], null, 1);
+  }
 
   // Map word-level scores onto syllable blocks.
   // Azure gives per-word scores; each "word" in Korean without spaces may map
