@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE ht>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1307,18 +1307,13 @@ function applyPronunciationResult(result) {
   const scoreNumEl = document.getElementById('pronounceScoreNum');
   const scoreLabelEl = document.getElementById('pronounceScoreLabel');
 
-  // Azure's response shape: NBest[0].PronunciationAssessment.PronScore, and
-  // NBest[0].Words[].PronunciationAssessment.AccuracyScore for per-word scores
+  // Azure's response shape: NBest[0].PronunciationAssessment.PronScore for the
+  // overall score, and NBest[0].Words[].AccuracyScore for per-word scores
+  // (note: AccuracyScore sits directly on the word object, not nested under
+  // a PronunciationAssessment sub-object, for this recognition API version).
   const nbest = result?.NBest?.[0];
   if (!nbest) {
-    // TEMP DEBUG: show the raw response so we can diagnose the actual issue
-    if (statusEl) {
-      statusEl.style.textAlign = 'left';
-      statusEl.style.whiteSpace = 'pre-wrap';
-      statusEl.style.fontSize = '11px';
-      statusEl.style.wordBreak = 'break-word';
-      statusEl.textContent = 'DEBUG — raw response:\n' + JSON.stringify(result, null, 2);
-    }
+    if (statusEl) statusEl.textContent = 'No result returned — check your recording and try again.';
     return;
   }
 
@@ -1329,31 +1324,31 @@ function applyPronunciationResult(result) {
     scoreNumEl.style.color = scoreToColor(overall);
   }
   if (scoreLabelEl) scoreLabelEl.style.display = 'block';
-  // TEMP DEBUG: show recognition status + recognized text + raw words below the score
   if (statusEl) {
-    statusEl.style.textAlign = 'left';
-    statusEl.style.whiteSpace = 'pre-wrap';
-    statusEl.style.fontSize = '11px';
-    statusEl.style.wordBreak = 'break-word';
-    statusEl.textContent =
-      'DEBUG\n' +
-      'RecognitionStatus: ' + (result.RecognitionStatus ?? 'n/a') + '\n' +
-      'DisplayText/recognized: ' + (result.DisplayText ?? nbest.Display ?? nbest.Lexical ?? 'n/a') + '\n' +
-      'Words: ' + JSON.stringify(nbest.Words ?? [], null, 1);
+    statusEl.style.textAlign = 'center';
+    statusEl.style.whiteSpace = 'normal';
+    statusEl.style.fontSize = '13px';
+    statusEl.textContent = '';
   }
 
-  // Map word-level scores onto syllable blocks.
-  // Azure gives per-word scores; each "word" in Korean without spaces may map
-  // to multiple syllable blocks, so we distribute each word's score across
-  // the syllables it covers, in order.
+  // Map per-syllable scores onto syllable blocks.
+  // Azure returns a Syllables[] array within each word with real per-syllable
+  // AccuracyScore values (the Syllable name field itself is often blank for
+  // Korean, but the scores and ordering are reliable) — use those directly
+  // rather than repeating one word-level score across all its syllables.
   const words = nbest.Words || [];
   const syllables = getSyllables(pronouncePhrase.kr);
   const perSylScores = [];
 
   words.forEach(w => {
-    const wordSyls = getSyllables(w.Word || '');
-    const score = w.PronunciationAssessment?.AccuracyScore ?? 0;
-    wordSyls.forEach(() => perSylScores.push(score));
+    if (Array.isArray(w.Syllables) && w.Syllables.length > 0) {
+      w.Syllables.forEach(syl => perSylScores.push(syl.AccuracyScore ?? 0));
+    } else {
+      // Fallback: no syllable breakdown for this word — repeat its word score
+      const wordSyls = getSyllables(w.Word || '');
+      const score = w.AccuracyScore ?? w.PronunciationAssessment?.AccuracyScore ?? 0;
+      wordSyls.forEach(() => perSylScores.push(score));
+    }
   });
 
   // Fallback: if word/syllable counts don't line up, just spread overall score
