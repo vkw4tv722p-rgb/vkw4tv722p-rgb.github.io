@@ -1,4 +1,3 @@
-<!DOCTYPE ht>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -264,6 +263,16 @@
   .syl-block.score-grad {
     /* background/color set inline per-block based on score */
     border-width: 2px;
+  }
+  .syl-score-label {
+    position: absolute;
+    bottom: -18px;
+    left: 0; right: 0;
+    text-align: center;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
   }
   .pronounce-status {
     font-size: 13px; color: var(--muted); min-height: 20px; margin-top: 8px;
@@ -1072,7 +1081,7 @@ function renderPronounce() {
     </div>
 
     <div class="pronounce-card">
-      <div class="blocks-row" id="pronounceBlocks" style="justify-content:center">${blocksHTML}</div>
+      <div class="blocks-row" id="pronounceBlocks" style="justify-content:center;margin-bottom:24px">${blocksHTML}</div>
 
       <div class="record-label" id="recordLabel">Tap to record</div>
       <button class="record-btn" id="recordBtn" onclick="toggleRecording()">🎙️</button>
@@ -1307,17 +1316,31 @@ function applyPronunciationResult(result) {
   const scoreNumEl = document.getElementById('pronounceScoreNum');
   const scoreLabelEl = document.getElementById('pronounceScoreLabel');
 
-  // Azure's response shape: NBest[0].PronunciationAssessment.PronScore for the
-  // overall score, and NBest[0].Words[].AccuracyScore for per-word scores
-  // (note: AccuracyScore sits directly on the word object, not nested under
-  // a PronunciationAssessment sub-object, for this recognition API version).
   const nbest = result?.NBest?.[0];
   if (!nbest) {
     if (statusEl) statusEl.textContent = 'No result returned — check your recording and try again.';
     return;
   }
 
-  const overall = Math.round(nbest.PronunciationAssessment?.PronScore ?? 0);
+  // Overall score location varies by API response shape — try the nested
+  // PronunciationAssessment object first, then fall back to a flat field
+  // directly on nbest, then derive it by averaging word-level scores.
+  let overall = nbest.PronunciationAssessment?.PronScore
+    ?? nbest.PronScore
+    ?? null;
+
+  if (overall == null) {
+    const wordScores = (nbest.Words || [])
+      .map(w => w.AccuracyScore ?? w.PronunciationAssessment?.AccuracyScore)
+      .filter(s => typeof s === 'number');
+    if (wordScores.length > 0) {
+      overall = wordScores.reduce((a, b) => a + b, 0) / wordScores.length;
+    } else {
+      overall = 0;
+    }
+  }
+  overall = Math.round(overall);
+
   if (scoreNumEl) {
     scoreNumEl.textContent = overall;
     scoreNumEl.style.display = 'block';
@@ -1360,11 +1383,24 @@ function applyPronunciationResult(result) {
     const block = document.getElementById('block-' + i);
     if (!block) return;
     const score = finalScores[i];
-    block.textContent = ch;
     block.className = 'syl-block score-grad';
     block.style.borderColor = scoreToColor(score);
     block.style.background  = scoreToBgColor(score);
     block.style.color       = scoreToColor(score);
+    block.style.position    = 'relative';
+
+    // Set the character via a dedicated text node so appending the score
+    // label afterward doesn't get wiped out by textContent reassignment.
+    block.innerHTML = '';
+    const charSpan = document.createElement('span');
+    charSpan.textContent = ch;
+    block.appendChild(charSpan);
+
+    const label = document.createElement('span');
+    label.className = 'syl-score-label';
+    label.textContent = Math.round(score);
+    label.style.color = scoreToColor(score);
+    block.appendChild(label);
   });
 }
 
