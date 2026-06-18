@@ -564,6 +564,7 @@ let pronouncePhrase   = null;
 let pronounceQueue    = [];           // shuffled indices into pronouncePhrases
 let pronounceQueuePos = 0;            // position within pronounceQueue
 let pronounceScores   = new Map();    // kr -> best score seen this round
+let allPronouncePhrases = [];         // full original set, preserved across retry rounds
 let mediaRecorder     = null;
 let recordedChunks    = [];
 let isRecording       = false;
@@ -1059,6 +1060,7 @@ function startPronounce() {
     return;
   }
   pronouncePhrases  = phrases;
+  allPronouncePhrases = phrases;
   pronounceQueue    = shuffle(phrases.map((_, i) => i));
   pronounceQueuePos = 0;
   pronounceScores   = new Map();
@@ -1128,9 +1130,8 @@ function currentKrTarget() {
 const PRONOUNCE_MASTERY_THRESHOLD = 90;
 
 function renderPronounceSummary() {
-  const total = pronounceQueue.length;
-  const results = pronounceQueue.map(i => {
-    const phrase = pronouncePhrases[i];
+  const total = allPronouncePhrases.length;
+  const results = allPronouncePhrases.map(phrase => {
     const score = pronounceScores.get(phrase.kr) ?? null; // null = never attempted
     return { phrase, score };
   });
@@ -1161,6 +1162,9 @@ function renderPronounceSummary() {
     `;
   }
 
+  const retryPhrases = needsPractice.map(r => r.phrase);
+  const allMastered  = retryPhrases.length === 0;
+
   document.getElementById('mainArea').innerHTML = `
     <div class="end-screen">
       <div class="stamp">${stampText}</div>
@@ -1170,10 +1174,34 @@ function renderPronounceSummary() {
         ${bucket('✓ Mastered (90+)', mastered, 'var(--correct)')}
         ${bucket('◎ Needs practice', needsPractice, 'var(--red-stamp)')}
       </div>
-      <button class="restart-btn" onclick="startPronounce()">다시 하기 — Play Again</button>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        ${!allMastered ? `<button class="submit-btn" onclick="retryNeedsPracticePronounce()">Practice needs-practice words →</button>` : ''}
+        <button class="restart-btn" onclick="startPronounce()">다시 하기 — Full restart</button>
+      </div>
     </div>
   `;
   document.getElementById('scoreDisplay').textContent = '';
+}
+
+function retryNeedsPracticePronounce() {
+  const needsPractice = allPronouncePhrases.filter(phrase => {
+    const score = pronounceScores.get(phrase.kr) ?? null;
+    return score === null || score < PRONOUNCE_MASTERY_THRESHOLD;
+  });
+
+  if (needsPractice.length === 0) return;
+
+  // Re-queue only the not-yet-mastered phrases. pronounceScores is preserved
+  // (not reset) so already-mastered words stay mastered, and any score
+  // improvement this round still uses the best-of-attempts rule.
+  // allPronouncePhrases is NOT touched, so the summary screen always reflects
+  // the full original word set across any number of retry rounds.
+  pronouncePhrases  = needsPractice;
+  pronounceQueue    = shuffle(needsPractice.map((_, i) => i));
+  pronounceQueuePos = 0;
+  pronouncePhrase   = pronouncePhrases[pronounceQueue[0]];
+  document.getElementById('scoreDisplay').textContent = '';
+  renderPronounce();
 }
 
 // Map a 0-100 score to a red→yellow→green color
