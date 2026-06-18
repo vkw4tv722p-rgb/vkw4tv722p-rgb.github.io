@@ -1,4 +1,4 @@
-<!DOCTYP html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1176,8 +1176,11 @@ async function handleRecordingComplete() {
   const blob = new Blob(recordedChunks, { type: recordedChunks[0].type || 'audio/webm' });
 
   try {
+    if (statusEl) statusEl.textContent = 'Converting audio…';
+    const wavBlob = await convertBlobToWav16kMono(blob);
+
     if (statusEl) statusEl.textContent = 'Scoring your pronunciation…';
-    const audioBase64 = await blobToBase64(blob);
+    const audioBase64 = await blobToBase64(wavBlob);
     const referenceText = pronouncePhrase.kr.replace(/[~+\-.?!,]/g, '').trim();
 
     const response = await fetch(PRONOUNCE_PROXY_URL, {
@@ -1189,17 +1192,107 @@ async function handleRecordingComplete() {
     const result = await response.json();
     applyPronunciationResult(result);
   } catch (err) {
-    if (statusEl) statusEl.textContent = 'Error scoring pronunciation. Try again.';
+    if (statusEl) statusEl.textContent = 'Error scoring pronunciation: ' + err.message;
   } finally {
     if (recordLabel) recordLabel.textContent = 'Tap to record';
   }
+}
+
+// Decode any browser-recorded audio blob (WebM/Opus, OGG, MP4, etc.) into
+// raw PCM, resample to 16kHz mono, and re-encode as a proper WAV file.
+// Azure's pronunciation assessment endpoint requires real 16kHz mono PCM WAV —
+// sending compressed audio mislabeled as WAV silently breaks scoring even
+// though plain transcription may still partially succeed.
+async function convertBlobToWav16kMono(blob) {
+  const arrayBuffer = await blob.arrayBuffer();
+
+  // Decode the compressed audio into raw PCM using the Web Audio API.
+  // Safari requires webkitAudioContext fallback on older versions.
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const decodeCtx = new AudioCtx();
+  const decodedBuffer = await decodeCtx.decodeAudioData(arrayBuffer.slice(0));
+  decodeCtx.close && decodeCtx.close();
+
+  const targetSampleRate = 16000;
+
+  // Resample to 16kHz mono using an OfflineAudioContext, which can render
+  // at an arbitrary target sample rate directly.
+  const durationSeconds = decodedBuffer.duration;
+  const offlineCtx = new OfflineAudioContext(
+    1, // mono output
+    Math.ceil(durationSeconds * targetSampleRate),
+    targetSampleRate
+  );
+
+  const source = offlineCtx.createBufferSource();
+  source.buffer = decodedBuffer;
+
+  // If the source has multiple channels, downmix to mono via a gain merge.
+  // Connecting directly to a 1-channel destination context handles downmixing
+  // automatically per the Web Audio spec's channel interpretation rules.
+  source.connect(offlineCtx.destination);
+  source.start(0);
+
+  const renderedBuffer = await offlineCtx.startRendering();
+  const pcmSamples = renderedBuffer.getChannelData(0); // Float32Array, mono, 16kHz
+
+  const wavArrayBuffer = encodeWavPCM16(pcmSamples, targetSampleRate);
+  return new Blob([wavArrayBuffer], { type: 'audio/wav' });
+}
+
+// Encode Float32 PCM samples (range -1.0 to 1.0) into a 16-bit PCM WAV file,
+// including a standard 44-byte RIFF/WAVE header.
+function encodeWavPCM16(samples, sampleRate) {
+  const numChannels = 1;
+  const bytesPerSample = 2; // 16-bit
+  const blockAlign = numChannels * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = samples.length * bytesPerSample;
+  const bufferSize = 44 + dataSize;
+
+  const buffer = new ArrayBuffer(bufferSize);
+  const view = new DataView(buffer);
+
+  function writeString(offset, str) {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  }
+
+  // RIFF header
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(8, 'WAVE');
+
+  // fmt subchunk
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);          // Subchunk1Size (16 for PCM)
+  view.setUint16(20, 1, true);           // AudioFormat (1 = PCM)
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bytesPerSample * 8, true); // BitsPerSample
+
+  // data subchunk
+  writeString(36, 'data');
+  view.setUint32(40, dataSize, true);
+
+  // Write PCM samples, converting Float32 [-1, 1] to Int16
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++) {
+    let s = Math.max(-1, Math.min(1, samples[i]));
+    s = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    view.setInt16(offset, s, true);
+    offset += 2;
+  }
+
+  return buffer;
 }
 
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
-      // reader.result is a data URL like "data:audio/webm;base64,XXXX"
+      // reader.result is a data URL like "data:audio/wav;base64,XXXX"
       const base64 = reader.result.split(',')[1];
       resolve(base64);
     };
@@ -1207,6 +1300,7 @@ function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
+
 
 function applyPronunciationResult(result) {
   const statusEl = document.getElementById('pronounceStatus');
