@@ -302,6 +302,13 @@
   .breakdown-row .kr { font-family: 'Gowun Dodum', sans-serif; font-size: 15px; color: var(--blue-ink); flex-shrink: 0; }
   .breakdown-row .en { color: var(--muted); font-size: 12px; flex: 1; }
   .breakdown-row .mark { font-size: 14px; flex-shrink: 0; }
+  .play-recording-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 14px; flex-shrink: 0; padding: 2px 4px;
+    border-radius: 4px; transition: background 0.15s;
+    line-height: 1;
+  }
+  .play-recording-btn:hover { background: var(--blue-light); }
   .restart-btn {
     padding: 12px 32px; background: var(--red-stamp); color: #fff; border: none; border-radius: 4px;
     font-family: 'Quicksand', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px;
@@ -536,6 +543,38 @@ const LISTS = {
     { kr: "이~.",      en: "This (indicator).",                cat: "Grammar" },
     { kr: "그 ~.",     en: "That (indicator).",                cat: "Grammar" },
     { kr: "저 ~.",     en: "That over there (indicator).",     cat: "Grammar" },
+  ],
+  "1.3 C": [
+    { kr: "공부.",       en: "Studies (noun).",                          cat: "Vocabulary" },
+    { kr: "공부하다.",   en: "To study (verb).",                         cat: "Vocabulary" },
+    { kr: "듣다.",       en: "To listen; to hear.",                      cat: "Vocabulary" },
+    { kr: "먹다.",       en: "To eat.",                                  cat: "Vocabulary" },
+    { kr: "드시다.",     en: "To eat (honorific).",                      cat: "Vocabulary" },
+    { kr: "잡수시다.",   en: "To eat (honorific).",                      cat: "Vocabulary" },
+    { kr: "보다.",       en: "To see; to watch; to read.",               cat: "Vocabulary" },
+    { kr: "빨래.",       en: "Laundry.",                                 cat: "Vocabulary" },
+    { kr: "빨래하다.",   en: "To do laundry.",                           cat: "Vocabulary" },
+    { kr: "설거지하다.", en: "To do the dishes.",                        cat: "Vocabulary" },
+    { kr: "숙제.",       en: "Homework.",                                cat: "Vocabulary" },
+    { kr: "숙제하다.",   en: "To do homework.",                          cat: "Vocabulary" },
+    { kr: "쉬다.",       en: "To rest; to take a break.",                cat: "Vocabulary" },
+    { kr: "식사.",       en: "A meal.",                                  cat: "Vocabulary" },
+    { kr: "식사하다.",   en: "To have a meal; \"to do dining\".",        cat: "Vocabulary" },
+    { kr: "요리.",       en: "Cooking.",                                 cat: "Vocabulary" },
+    { kr: "요리하다.",   en: "To cook; \"to do cooking\".",              cat: "Vocabulary" },
+    { kr: "운동.",       en: "Exercise.",                                cat: "Vocabulary" },
+    { kr: "운동하다.",   en: "To do exercise; to work out.",             cat: "Vocabulary" },
+    { kr: "읽다.",       en: "To read.",                                 cat: "Vocabulary" },
+    { kr: "자다.",       en: "To sleep.",                                cat: "Vocabulary" },
+    { kr: "주무시다.",   en: "To sleep (honorific).",                    cat: "Vocabulary" },
+    { kr: "청소.",       en: "Cleaning.",                                cat: "Vocabulary" },
+    { kr: "청소하다.",   en: "To clean; \"to do cleaning\".",            cat: "Vocabulary" },
+    { kr: "~을.",        en: "Object marker (after consonant).",         cat: "Grammar" },
+    { kr: "~를.",        en: "Object marker (after vowel).",             cat: "Grammar" },
+    { kr: "음악.",       en: "Music; \"delightful sound\".",             cat: "Vocabulary" },
+    { kr: "주말.",       en: "Weekend.",                                 cat: "Vocabulary" },
+    { kr: "밥.",         en: "A meal; (cooked) rice.",                   cat: "Vocabulary" },
+    { kr: "신문.",       en: "Newspapers.",                              cat: "Vocabulary" },
   ],
 };
 
@@ -1051,7 +1090,64 @@ function startRetry() {
   renderQuiz(retrySet);
 }
 
-// ── PRONOUNCE MODE ────────────────────────────────────────────────────────
+// ── RECORDING STORAGE (IndexedDB) ────────────────────────────────────────
+// Persists the user's best (90+) pronunciation recording per phrase across
+// browser sessions, so they can play back their own voice later from the
+// Pronounce summary screen. Keyed by the Korean phrase text.
+const RECORDING_DB_NAME    = 'korean-game-recordings';
+const RECORDING_DB_VERSION = 1;
+const RECORDING_STORE      = 'bestRecordings';
+let recordingDbPromise = null;
+
+function openRecordingDb() {
+  if (recordingDbPromise) return recordingDbPromise;
+  recordingDbPromise = new Promise((resolve, reject) => {
+    if (!window.indexedDB) { resolve(null); return; }
+    const req = indexedDB.open(RECORDING_DB_NAME, RECORDING_DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(RECORDING_STORE)) {
+        db.createObjectStore(RECORDING_STORE); // key = phrase.kr, value = { blob, score }
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => resolve(null); // fail soft — playback simply won't be available
+  });
+  return recordingDbPromise;
+}
+
+async function saveBestRecording(kr, score, blob) {
+  const db = await openRecordingDb();
+  if (!db) return;
+  return new Promise((resolve) => {
+    const tx = db.transaction(RECORDING_STORE, 'readwrite');
+    tx.objectStore(RECORDING_STORE).put({ score, blob }, kr);
+    tx.oncomplete = () => resolve();
+    tx.onerror    = () => resolve();
+  });
+}
+
+async function getBestRecording(kr) {
+  const db = await openRecordingDb();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    const tx = db.transaction(RECORDING_STORE, 'readonly');
+    const req = tx.objectStore(RECORDING_STORE).get(kr);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror   = () => resolve(null);
+  });
+}
+
+async function playSavedRecording(kr) {
+  const entry = await getBestRecording(kr);
+  if (!entry || !entry.blob) return;
+  const url = URL.createObjectURL(entry.blob);
+  const audio = new Audio(url);
+  audio.play();
+  audio.addEventListener('ended', () => URL.revokeObjectURL(url));
+}
+
+
 function startPronounce() {
   const phrases = getActivePhrases();
   if (phrases.length === 0) {
@@ -1146,7 +1242,7 @@ function renderPronounceSummary() {
 
   const stampText = mastered.length === total ? '만점!' : mastered.length / total >= 0.7 ? '잘했어요' : '다시 해봐요';
 
-  function bucket(label, items, color) {
+  function bucket(label, items, color, withPlayButton) {
     if (items.length === 0) return '';
     return `
       <div style="margin-bottom:20px">
@@ -1155,6 +1251,7 @@ function renderPronounceSummary() {
           <div class="breakdown-row">
             <span class="kr">${r.phrase.kr}</span>
             <span class="en">${r.phrase.en}</span>
+            ${withPlayButton ? `<button class="play-recording-btn" onclick="playSavedRecording('${r.phrase.kr.replace(/'/g, "\\'")}')" title="Play your recording">▶️</button>` : ''}
             <span class="mark" style="font-weight:700;color:${r.score === null ? 'var(--muted-2)' : scoreToColor(r.score)}">${r.score === null ? '—' : r.score}</span>
           </div>
         `).join('')}
@@ -1171,8 +1268,8 @@ function renderPronounceSummary() {
       <div class="end-score">${mastered.length} / ${total}</div>
       <div class="end-label">words mastered (90+) · avg score ${avgScore}</div>
       <div class="end-breakdown">
-        ${bucket('✓ Mastered (90+)', mastered, 'var(--correct)')}
-        ${bucket('◎ Needs practice', needsPractice, 'var(--red-stamp)')}
+        ${bucket('✓ Mastered (90+)', mastered, 'var(--correct)', true)}
+        ${bucket('◎ Needs practice', needsPractice, 'var(--red-stamp)', false)}
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         ${!allMastered ? `<button class="submit-btn" onclick="retryNeedsPracticePronounce()">Practice needs-practice words →</button>` : ''}
@@ -1300,7 +1397,7 @@ async function handleRecordingComplete() {
     });
 
     const result = await response.json();
-    applyPronunciationResult(result);
+    applyPronunciationResult(result, wavBlob);
   } catch (err) {
     if (statusEl) statusEl.textContent = 'Error scoring pronunciation: ' + err.message;
   } finally {
@@ -1412,7 +1509,7 @@ function blobToBase64(blob) {
 }
 
 
-function applyPronunciationResult(result) {
+function applyPronunciationResult(result, wavBlob) {
   const statusEl = document.getElementById('pronounceStatus');
   const scoreNumEl = document.getElementById('pronounceScoreNum');
   const scoreLabelEl = document.getElementById('pronounceScoreLabel');
@@ -1459,6 +1556,13 @@ function applyPronunciationResult(result) {
   const key = pronouncePhrase.kr;
   const prevBest = pronounceScores.get(key) ?? -1;
   if (overall > prevBest) pronounceScores.set(key, overall);
+
+  // Save the recording if this attempt is a new best AND crosses the mastery
+  // threshold — only one (the best) 90+ recording is kept per phrase, and it
+  // persists across browser sessions via IndexedDB for later playback.
+  if (overall > prevBest && overall >= PRONOUNCE_MASTERY_THRESHOLD && wavBlob) {
+    saveBestRecording(key, overall, wavBlob);
+  }
 
   // Map per-syllable scores onto syllable blocks.
   // Azure returns a Syllables[] array within each word with real per-syllable
