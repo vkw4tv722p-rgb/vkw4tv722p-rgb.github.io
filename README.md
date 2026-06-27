@@ -94,6 +94,22 @@
     cursor: pointer; color: var(--muted-2); transition: color 0.2s, border-color 0.2s;
   }
   .mode-tab.active { color: var(--blue-ink); border-bottom-color: var(--blue-ink); }
+  .due-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    margin-left: 4px;
+    border-radius: 8px;
+    background: var(--red-stamp);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: 2px;
+  }
 
   /* ── LIST SELECTOR ── */
   .selector-wrap { margin-bottom: 20px; }
@@ -330,6 +346,7 @@
     <button class="mode-tab active" id="tabStudy" onclick="switchMode('study')">Study</button>
     <button class="mode-tab"        id="tabQuiz"  onclick="switchMode('quiz')">Quiz</button>
     <button class="mode-tab"        id="tabPronounce" onclick="switchMode('pronounce')">Pronounce</button>
+    <button class="mode-tab"        id="tabReview" onclick="switchMode('review')">Review<span id="reviewDueBadge" class="due-badge" style="display:none"></span></button>
   </div>
 
   <div class="selector-wrap">
@@ -780,11 +797,19 @@ function switchMode(m) {
   document.getElementById('tabStudy').classList.toggle('active', m === 'study');
   document.getElementById('tabQuiz').classList.toggle('active',  m === 'quiz');
   document.getElementById('tabPronounce').classList.toggle('active', m === 'pronounce');
+  document.getElementById('tabReview').classList.toggle('active', m === 'review');
   document.getElementById('scoreDisplay').textContent = '';
-  renderListSelector();
-  if (m === 'study') renderStudy();
-  else if (m === 'quiz') startQuiz();
-  else startPronounce();
+
+  // Review mode pulls from ALL lists regardless of selection, since spaced
+  // repetition is inherently a global, cross-list concept — so the list
+  // selector (which scopes Study/Quiz/Pronounce) doesn't apply here.
+  const selectorWrap = document.querySelector('.selector-wrap');
+  if (selectorWrap) selectorWrap.style.display = (m === 'review') ? 'none' : '';
+
+  if (m === 'study') { renderListSelector(); renderStudy(); }
+  else if (m === 'quiz') { renderListSelector(); startQuiz(); }
+  else if (m === 'pronounce') { renderListSelector(); startPronounce(); }
+  else { startReview(); }
 }
 
 // ── STUDY MODE ────────────────────────────────────────────────────────────
@@ -980,6 +1005,9 @@ function submitAnswer() {
     const isFirst = currentRoundKeys.has(phrase.kr);
     phraseStatus.set(phrase.kr, { phrase, status: isFirst ? 'first' : 'corrected' });
     currentRoundKeys.delete(phrase.kr);
+    // Only the FIRST attempt on this question counts toward spaced-repetition
+    // tracking — retries within the same question aren't a fresh recall test.
+    if (isFirst) recordSrsAttempt(phrase.kr, true);
     document.getElementById('scoreDisplay').textContent = `★ ${quizScore}`;
     setTimeout(() => advanceQuiz(), 1000);
   } else {
@@ -996,8 +1024,12 @@ function submitAnswer() {
     const fb = document.getElementById('feedbackLine');
     if (fb) { fb.textContent = '✗ 다시 해 보세요.'; fb.className = 'feedback wrong'; fb.dataset.state = 'wrong'; }
     // Mark as missed and remove from currentRoundKeys so a subsequent correct answer knows it was attempted this round
+    const wasFirstAttempt = currentRoundKeys.has(phrase.kr);
     currentRoundKeys.delete(phrase.kr);
     phraseStatus.set(phrase.kr, { phrase, status: 'missed' });
+    // Only the FIRST wrong attempt on this question counts toward SRS —
+    // subsequent wrong retries on the same question don't further penalize.
+    if (wasFirstAttempt) recordSrsAttempt(phrase.kr, false);
     setTimeout(() => {
       input.value   = '';
       committedSyls = [];
@@ -1025,6 +1057,53 @@ function startQuiz() {
   phraseStatus  = new Map();
   document.getElementById('scoreDisplay').textContent = `★ 0`;
   renderQuiz(phrases);
+}
+
+// ── REVIEW (SPACED REPETITION) MODE ──────────────────────────────────────
+// Pulls due words from ACROSS ALL lists (ignoring the list selector, since
+// spaced repetition is a global concept) and runs them through the same
+// Quiz UI/scoring machinery. Falls back to a friendly empty state if
+// nothing is due right now.
+async function startReview() {
+  const allPhrases = Object.values(LISTS).flat();
+  document.getElementById('mainArea').innerHTML = `<div style="text-align:center;padding:60px 0;color:var(--muted-2);font-size:15px;letter-spacing:1px;">Checking what's due…</div>`;
+
+  const duePhrases = await getDuePhrases(allPhrases);
+
+  if (duePhrases.length === 0) {
+    document.getElementById('scoreDisplay').textContent = '';
+    document.getElementById('mainArea').innerHTML = `
+      <div style="text-align:center;padding:60px 0;">
+        <div style="font-size:40px;margin-bottom:12px">🎉</div>
+        <div style="color:var(--muted);font-size:15px;letter-spacing:0.5px;">Nothing due for review right now.<br>Come back later, or practice a list directly.</div>
+      </div>`;
+    return;
+  }
+
+  currentQuizPhrases = duePhrases;
+  currentRoundKeys   = new Set(duePhrases.map(p => p.kr));
+  quizQueue     = shuffle(duePhrases.map((_, i) => i));
+  quizIndex     = 0;
+  quizScore     = 0;
+  quizResults   = [];
+  phraseStatus  = new Map();
+  document.getElementById('scoreDisplay').textContent = `★ 0`;
+  renderQuiz(duePhrases);
+}
+
+// Updates the small due-count badge on the Review tab. Called on init and
+// after any Quiz/Review session completes, so the count stays current.
+async function refreshReviewBadge() {
+  const badge = document.getElementById('reviewDueBadge');
+  if (!badge) return;
+  const allPhrases = Object.values(LISTS).flat();
+  const due = await getDuePhrases(allPhrases);
+  if (due.length > 0) {
+    badge.textContent = due.length;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 function speak(text) {
@@ -1150,11 +1229,12 @@ function renderEndScreen() {
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         ${!allMastered ? `<button class="submit-btn" onclick="startRetry()">Practice missed &amp; corrected →</button>` : ''}
-        <button class="restart-btn" onclick="startQuiz()">다시 하기 — Full restart</button>
+        <button class="restart-btn" onclick="${mode === 'review' ? 'startReview()' : 'startQuiz()'}">다시 하기 — Full restart</button>
       </div>
     </div>
   `;
   document.getElementById('scoreDisplay').textContent = '';
+  refreshReviewBadge();
 }
 
 function startRetry() {
@@ -1186,7 +1266,124 @@ function startRetry() {
   renderQuiz(retrySet);
 }
 
-// ── RECORDING STORAGE (IndexedDB) ────────────────────────────────────────
+// ── SPACED REPETITION STATS (IndexedDB) ──────────────────────────────────
+// Tracks per-word Quiz (spelling) performance across sessions to power a
+// lightweight Leitner-box style spaced repetition system. Separate database
+// from the recordings store, so a schema change to one never affects the
+// other. Keyed by the Korean phrase text.
+//
+// Box levels and their "due again after" gaps (in days). Box 0 is brand new
+// / just got it wrong — due immediately. Higher boxes mean better-known
+// words that surface less often. Box 5 is treated as "mastered" and is
+// reviewed only occasionally as a long-term check.
+const SRS_DB_NAME    = 'korean-game-srs';
+const SRS_DB_VERSION = 1;
+const SRS_STORE      = 'wordStats';
+const SRS_BOX_GAPS_DAYS = [0, 1, 3, 7, 14, 30]; // index = box level
+const SRS_MAX_BOX = SRS_BOX_GAPS_DAYS.length - 1;
+
+let srsDbPromise = null;
+
+function openSrsDb() {
+  if (srsDbPromise) return srsDbPromise;
+  srsDbPromise = new Promise((resolve) => {
+    if (!window.indexedDB) { resolve(null); return; }
+    const req = indexedDB.open(SRS_DB_NAME, SRS_DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(SRS_STORE)) {
+        db.createObjectStore(SRS_STORE); // key = phrase.kr
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => resolve(null); // fail soft — SRS simply won't persist
+  });
+  return srsDbPromise;
+}
+
+function defaultSrsRecord() {
+  return {
+    box: 0,
+    timesCorrect: 0,
+    timesWrong: 0,
+    lastSeen: null,     // ISO date string
+    nextDue: null,       // ISO date string, null = due now (never reviewed)
+  };
+}
+
+async function getSrsRecord(kr) {
+  const db = await openSrsDb();
+  if (!db) return defaultSrsRecord();
+  return new Promise((resolve) => {
+    const tx = db.transaction(SRS_STORE, 'readonly');
+    const req = tx.objectStore(SRS_STORE).get(kr);
+    req.onsuccess = () => resolve(req.result || defaultSrsRecord());
+    req.onerror   = () => resolve(defaultSrsRecord());
+  });
+}
+
+async function getAllSrsRecords() {
+  const db = await openSrsDb();
+  if (!db) return new Map();
+  return new Promise((resolve) => {
+    const tx = db.transaction(SRS_STORE, 'readonly');
+    const store = tx.objectStore(SRS_STORE);
+    const result = new Map();
+    const cursorReq = store.openCursor();
+    cursorReq.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) {
+        result.set(cursor.key, cursor.value);
+        cursor.continue();
+      } else {
+        resolve(result);
+      }
+    };
+    cursorReq.onerror = () => resolve(result);
+  });
+}
+
+async function recordSrsAttempt(kr, wasCorrect) {
+  const db = await openSrsDb();
+  if (!db) return;
+  const existing = await getSrsRecord(kr);
+
+  const record = { ...existing };
+  if (wasCorrect) {
+    record.timesCorrect = (record.timesCorrect || 0) + 1;
+    record.box = Math.min(SRS_MAX_BOX, (record.box || 0) + 1);
+  } else {
+    record.timesWrong = (record.timesWrong || 0) + 1;
+    record.box = 0;
+  }
+  const now = new Date();
+  record.lastSeen = now.toISOString();
+  const gapDays = SRS_BOX_GAPS_DAYS[record.box];
+  const due = new Date(now.getTime() + gapDays * 24 * 60 * 60 * 1000);
+  record.nextDue = due.toISOString();
+
+  return new Promise((resolve) => {
+    const tx = db.transaction(SRS_STORE, 'readwrite');
+    tx.objectStore(SRS_STORE).put(record, kr);
+    tx.oncomplete = () => resolve(record);
+    tx.onerror    = () => resolve(record);
+  });
+}
+
+// Returns the list of phrases (from the given full phrase pool) that are
+// currently due for review: either never attempted, or whose nextDue date
+// has passed.
+async function getDuePhrases(allPhrases) {
+  const records = await getAllSrsRecords();
+  const now = new Date();
+  return allPhrases.filter(phrase => {
+    const rec = records.get(phrase.kr);
+    if (!rec || !rec.nextDue) return true; // never attempted — due now
+    return new Date(rec.nextDue) <= now;
+  });
+}
+
+
 // Persists the user's best (90+) pronunciation recording per phrase across
 // browser sessions, so they can play back their own voice later from the
 // Pronounce summary screen. Keyed by the Korean phrase text.
@@ -1749,6 +1946,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyTheme();
   renderListSelector();
   renderStudy();
+  refreshReviewBadge();
 });
 </script>
 </body>
