@@ -331,6 +331,49 @@
     cursor: pointer; transition: background 0.15s;
   }
   .restart-btn:hover { background: #a03020; }
+
+  /* ── SETTINGS PANEL ── */
+  .settings-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .settings-panel {
+    background: var(--card-bg);
+    width: 100%; max-width: 580px;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 20px 28px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .settings-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 15px; font-weight: 700; color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .settings-panel-hint {
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+    margin-bottom: 18px;
+  }
+  .settings-list-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--ruled);
+    gap: 10px;
+  }
+  .settings-list-row:last-child { border-bottom: none; }
+  .settings-list-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .settings-list-status { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .settings-toggle-group { display: flex; gap: 4px; flex-shrink: 0; }
+  .settings-toggle-btn {
+    padding: 5px 10px; font-size: 11px; font-weight: 700;
+    border: 1.5px solid var(--ruled); border-radius: 6px;
+    background: none; color: var(--muted); cursor: pointer;
+    letter-spacing: 0.3px; transition: all 0.15s;
+  }
+  .settings-toggle-btn.active-on  { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .settings-toggle-btn.active-off { border-color: var(--red-stamp); background: var(--red-light); color: var(--red-stamp); }
+  .settings-toggle-btn.active-auto { border-color: var(--blue-ink); background: var(--blue-light); color: var(--blue-ink); }
 </style>
 </head>
 <body>
@@ -339,8 +382,22 @@
     <span class="title-kr">한글 쓰기</span>
     <span class="title-en">Spelling Practice</span>
     <span class="score-badge" id="scoreDisplay" style="display:none"></span>
+    <button class="theme-toggle" id="settingsToggle" onclick="openSettingsPanel()" aria-label="Review settings">⚙️</button>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🔆</button>
   </header>
+
+  <div id="settingsOverlay" class="settings-overlay" style="display:none" onclick="closeSettingsPanel(event)">
+    <div class="settings-panel" onclick="event.stopPropagation()">
+      <div class="settings-panel-header">
+        <span>Review eligibility</span>
+        <button class="ghost-btn" onclick="closeSettingsPanel()">Close</button>
+      </div>
+      <div class="settings-panel-hint">
+        Lists become eligible for the Review tab automatically once you finish a full Quiz round on them. Override any list manually below.
+      </div>
+      <div id="settingsListRows"></div>
+    </div>
+  </div>
 
   <div class="mode-tabs">
     <button class="mode-tab active" id="tabStudy" onclick="switchMode('study')">Study</button>
@@ -690,6 +747,13 @@ const LISTS = {
     { kr: "곧장.",       en: "Straight.",                                cat: "Vocabulary" },
   ],
 };
+
+// Tag every phrase with its source list name (__list) so any flattened
+// view of the data (Quiz, Review, etc.) can trace a word back to which
+// list it came from — needed for per-list Review eligibility.
+Object.entries(LISTS).forEach(([listName, phrases]) => {
+  phrases.forEach(phrase => { phrase.__list = listName; });
+});
 
 // ── GLOBAL STATE ──────────────────────────────────────────────────────────
 let mode         = 'study';
@@ -1202,6 +1266,14 @@ function renderEndScreen() {
   const retryPhrases = [...corrected, ...missed];
   const allMastered  = retryPhrases.length === 0;
 
+  // A completed Quiz round (not Review) marks every list represented in
+  // this round as eligible for Review going forward. Review-mode
+  // completions don't re-trigger this, since that would be circular.
+  if (mode === 'quiz') {
+    const listsInRound = new Set(phrases.map(p => p.__list).filter(Boolean));
+    listsInRound.forEach(listName => markListAutoStarted(listName));
+  }
+
   function bucket(label, items, color) {
     if (items.length === 0) return '';
     return `
@@ -1277,8 +1349,9 @@ function startRetry() {
 // words that surface less often. Box 5 is treated as "mastered" and is
 // reviewed only occasionally as a long-term check.
 const SRS_DB_NAME    = 'korean-game-srs';
-const SRS_DB_VERSION = 1;
+const SRS_DB_VERSION = 2; // bumped to add the list-eligibility store
 const SRS_STORE      = 'wordStats';
+const LIST_ELIGIBILITY_STORE = 'listEligibility'; // key = list name, value = { autoStarted: bool, manualOverride: 'on'|'off'|null }
 const SRS_BOX_GAPS_DAYS = [0, 1, 3, 7, 14, 30]; // index = box level
 const SRS_MAX_BOX = SRS_BOX_GAPS_DAYS.length - 1;
 
@@ -1293,6 +1366,9 @@ function openSrsDb() {
       const db = req.result;
       if (!db.objectStoreNames.contains(SRS_STORE)) {
         db.createObjectStore(SRS_STORE); // key = phrase.kr
+      }
+      if (!db.objectStoreNames.contains(LIST_ELIGIBILITY_STORE)) {
+        db.createObjectStore(LIST_ELIGIBILITY_STORE); // key = list name
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -1372,15 +1448,103 @@ async function recordSrsAttempt(kr, wasCorrect) {
 
 // Returns the list of phrases (from the given full phrase pool) that are
 // currently due for review: either never attempted, or whose nextDue date
-// has passed.
+// has passed. Only considers phrases from lists currently eligible for
+// Review (see list-eligibility functions below).
 async function getDuePhrases(allPhrases) {
   const records = await getAllSrsRecords();
+  const eligibleListNames = await getEligibleListNames();
   const now = new Date();
   return allPhrases.filter(phrase => {
+    if (!eligibleListNames.has(phrase.__list)) return false;
     const rec = records.get(phrase.kr);
     if (!rec || !rec.nextDue) return true; // never attempted — due now
     return new Date(rec.nextDue) <= now;
   });
+}
+
+// ── LIST ELIGIBILITY FOR REVIEW MODE ─────────────────────────────────────
+// A list only feeds into Review mode once it's "eligible" — by default,
+// that means you've completed at least one full Quiz round on it (reaching
+// the end screen, not just answering a question). This is auto-detected
+// and stored per list, but can be manually overridden either direction
+// from the settings panel, in case the automatic signal is wrong (e.g. an
+// accidental quiz completion, or wanting to opt a list in/out manually).
+async function getListEligibilityRecord(listName) {
+  const db = await openSrsDb();
+  if (!db) return { autoStarted: false, manualOverride: null };
+  return new Promise((resolve) => {
+    const tx = db.transaction(LIST_ELIGIBILITY_STORE, 'readonly');
+    const req = tx.objectStore(LIST_ELIGIBILITY_STORE).get(listName);
+    req.onsuccess = () => resolve(req.result || { autoStarted: false, manualOverride: null });
+    req.onerror   = () => resolve({ autoStarted: false, manualOverride: null });
+  });
+}
+
+async function getAllListEligibilityRecords() {
+  const db = await openSrsDb();
+  if (!db) return new Map();
+  return new Promise((resolve) => {
+    const tx = db.transaction(LIST_ELIGIBILITY_STORE, 'readonly');
+    const store = tx.objectStore(LIST_ELIGIBILITY_STORE);
+    const result = new Map();
+    const cursorReq = store.openCursor();
+    cursorReq.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) { result.set(cursor.key, cursor.value); cursor.continue(); }
+      else resolve(result);
+    };
+    cursorReq.onerror = () => resolve(result);
+  });
+}
+
+// Marks a list as "auto-started" — called when a full Quiz round completes
+// for phrases belonging to that list. Does not override an existing manual
+// setting; it only sets the underlying automatic flag.
+async function markListAutoStarted(listName) {
+  const db = await openSrsDb();
+  if (!db) return;
+  const existing = await getListEligibilityRecord(listName);
+  if (existing.autoStarted) return; // already set, nothing to do
+  const updated = { ...existing, autoStarted: true };
+  return new Promise((resolve) => {
+    const tx = db.transaction(LIST_ELIGIBILITY_STORE, 'readwrite');
+    tx.objectStore(LIST_ELIGIBILITY_STORE).put(updated, listName);
+    tx.oncomplete = () => resolve();
+    tx.onerror    = () => resolve();
+  });
+}
+
+// Sets a manual override for a list: 'on' forces it eligible, 'off' forces
+// it ineligible, null clears the override and falls back to the automatic
+// flag.
+async function setListManualOverride(listName, value) {
+  const db = await openSrsDb();
+  if (!db) return;
+  const existing = await getListEligibilityRecord(listName);
+  const updated = { ...existing, manualOverride: value };
+  return new Promise((resolve) => {
+    const tx = db.transaction(LIST_ELIGIBILITY_STORE, 'readwrite');
+    tx.objectStore(LIST_ELIGIBILITY_STORE).put(updated, listName);
+    tx.oncomplete = () => resolve();
+    tx.onerror    = () => resolve();
+  });
+}
+
+// Returns a Set of list names currently eligible for Review: manual
+// override wins if set, otherwise falls back to the auto-started flag.
+async function getEligibleListNames() {
+  const allNames = Object.keys(LISTS);
+  const records = await getAllListEligibilityRecords();
+  const eligible = new Set();
+  allNames.forEach(name => {
+    const rec = records.get(name);
+    if (!rec) return; // never touched — not eligible by default
+    const isEligible = rec.manualOverride === 'on' ? true
+      : rec.manualOverride === 'off' ? false
+      : !!rec.autoStarted;
+    if (isEligible) eligible.add(name);
+  });
+  return eligible;
 }
 
 
@@ -1919,6 +2083,64 @@ function applyTheme() {
 function toggleTheme() {
   isDarkMode = !isDarkMode;
   applyTheme();
+}
+
+// ── SETTINGS PANEL (Review eligibility overrides) ────────────────────────
+async function openSettingsPanel() {
+  const overlay = document.getElementById('settingsOverlay');
+  if (!overlay) return;
+  await renderSettingsListRows();
+  overlay.style.display = 'flex';
+}
+
+function closeSettingsPanel(event) {
+  // If called from the overlay click, only close when clicking the
+  // backdrop itself, not the panel content (handled via stopPropagation
+  // on the panel, so this only fires for genuine backdrop clicks or the
+  // explicit Close button with no event).
+  const overlay = document.getElementById('settingsOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+async function renderSettingsListRows() {
+  const container = document.getElementById('settingsListRows');
+  if (!container) return;
+  const records = await getAllListEligibilityRecords();
+
+  container.innerHTML = Object.keys(LISTS).map(listName => {
+    const rec = records.get(listName) || { autoStarted: false, manualOverride: null };
+    const effectiveOn = rec.manualOverride === 'on' ? true
+      : rec.manualOverride === 'off' ? false
+      : !!rec.autoStarted;
+
+    const statusText = rec.manualOverride === 'on'  ? 'Manually included'
+      : rec.manualOverride === 'off' ? 'Manually excluded'
+      : rec.autoStarted ? 'Included (completed a quiz round)'
+      : 'Not yet started';
+
+    return `
+      <div class="settings-list-row">
+        <div>
+          <div class="settings-list-name">${listName}</div>
+          <div class="settings-list-status">${statusText}</div>
+        </div>
+        <div class="settings-toggle-group">
+          <button class="settings-toggle-btn ${rec.manualOverride === null ? 'active-auto' : ''}"
+            onclick="setListOverrideAndRefresh('${listName}', null)">Auto</button>
+          <button class="settings-toggle-btn ${rec.manualOverride === 'on' ? 'active-on' : ''}"
+            onclick="setListOverrideAndRefresh('${listName}', 'on')">On</button>
+          <button class="settings-toggle-btn ${rec.manualOverride === 'off' ? 'active-off' : ''}"
+            onclick="setListOverrideAndRefresh('${listName}', 'off')">Off</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function setListOverrideAndRefresh(listName, value) {
+  await setListManualOverride(listName, value);
+  await renderSettingsListRows();
+  refreshReviewBadge();
 }
 
 // ── VIEWPORT (keyboard-aware sizing) ────────────────────────────────────────
