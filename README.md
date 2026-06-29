@@ -64,9 +64,7 @@
     position: relative;
     width: 100%;
     max-width: 580px;
-    padding: 0 20px 20px;
-    max-height: var(--app-max-height, none);
-    overflow-y: auto;
+    padding: 0 20px 40px;
   }
 
   /* ── HEADER ── */
@@ -2143,24 +2141,8 @@ async function setListOverrideAndRefresh(listName, value) {
   refreshReviewBadge();
 }
 
-// ── VIEWPORT (keyboard-aware sizing) ────────────────────────────────────────
-// On mobile, opening the OS keyboard shrinks the visual viewport. We track
-// that height and cap the app container to it so content compresses to fit
-// instead of the page auto-scrolling to keep the focused input visible.
-function syncViewportHeight() {
-  const vv = window.visualViewport;
-  if (!vv) return;
-  document.documentElement.style.setProperty('--app-max-height', vv.height + 'px');
-}
-
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', syncViewportHeight);
-  window.visualViewport.addEventListener('scroll', syncViewportHeight);
-}
-
 // ── INIT ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  syncViewportHeight();
   // Default to system preference if available
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     isDarkMode = true;
