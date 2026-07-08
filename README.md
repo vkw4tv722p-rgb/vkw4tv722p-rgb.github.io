@@ -371,6 +371,82 @@
   .settings-toggle-btn.active-on  { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
   .settings-toggle-btn.active-off { border-color: var(--red-stamp); background: var(--red-light); color: var(--red-stamp); }
   .settings-toggle-btn.active-auto { border-color: var(--blue-ink); background: var(--blue-light); color: var(--blue-ink); }
+
+  /* ── STORIES MODE ── */
+  .story-selector-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .story-card {
+    background: var(--card-bg); border: 1px solid var(--ruled);
+    border-radius: 4px; padding: 16px 20px;
+    box-shadow: 2px 2px 0 var(--ruled); cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .story-card:hover { border-color: var(--blue-ink); }
+  .story-card-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .story-card-meta  { font-size: 12px; color: var(--muted); }
+  .story-sub-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .story-sub-tab {
+    flex: 1; padding: 8px 0; text-align: center;
+    font-family: 'Quicksand', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    border: 1.5px solid var(--ruled); border-radius: 4px;
+    background: none; color: var(--muted); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .story-sub-tab.active { border-color: var(--blue-ink); background: var(--blue-light); color: var(--blue-ink); }
+  .story-read-line {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--ruled);
+  }
+  .story-speaker {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    color: var(--red-stamp); flex-shrink: 0; width: 22px; text-transform: uppercase;
+  }
+  .story-line-kr {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 18px; color: var(--ink); flex: 1; line-height: 1.5;
+  }
+  .story-line-listen {
+    background: none; border: none; cursor: pointer;
+    font-size: 16px; flex-shrink: 0; padding: 2px;
+    opacity: 0.5; transition: opacity 0.15s;
+  }
+  .story-line-listen:hover { opacity: 1; }
+  .story-context-line {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 16px; color: var(--muted-2);
+    padding: 10px 0 14px; border-bottom: 1px solid var(--ruled);
+    margin-bottom: 20px; line-height: 1.5;
+  }
+  .story-context-speaker {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    color: var(--muted-2); text-transform: uppercase; margin-right: 6px;
+  }
+  .story-target-speaker {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    color: var(--red-stamp); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .mask-sentence {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 20px; line-height: 2; color: var(--ink); margin-bottom: 20px;
+  }
+  .mask-word { display: inline; }
+  .mask-blank {
+    display: inline-block;
+    background: var(--blue-light); border-bottom: 2px solid var(--blue-ink);
+    color: transparent; border-radius: 2px;
+    min-width: 44px; margin: 0 2px; padding: 0 4px;
+    vertical-align: baseline;
+  }
+  .mask-blank.revealed { color: var(--blue-ink); }
+  .mask-blank.correct  { color: var(--correct); background: var(--correct-bg); border-color: var(--correct); }
+  .mask-blank.wrong    { color: var(--red-stamp); background: var(--red-light); border-color: var(--red-stamp); }
+  .story-back-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 700; color: var(--muted);
+    letter-spacing: 0.5px; padding: 0; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .story-back-btn:hover { color: var(--ink); }
 </style>
 </head>
 <body>
@@ -401,6 +477,7 @@
     <button class="mode-tab"        id="tabQuiz"  onclick="switchMode('quiz')">Quiz</button>
     <button class="mode-tab"        id="tabPronounce" onclick="switchMode('pronounce')">Pronounce</button>
     <button class="mode-tab"        id="tabReview" onclick="switchMode('review')">Review<span id="reviewDueBadge" class="due-badge" style="display:none"></span></button>
+    <button class="mode-tab"        id="tabStories" onclick="switchMode('stories')">Stories</button>
   </div>
 
   <div class="selector-wrap">
@@ -743,6 +820,33 @@ const LISTS = {
     { kr: "쭉.",         en: "Straight.",                                cat: "Vocabulary" },
     { kr: "곧장.",       en: "Straight.",                                cat: "Vocabulary" },
   ],
+  "2.5 A": [
+    { kr: "매일.",       en: "Every day.",                               cat: "Time" },
+    { kr: "자주.",       en: "Often; frequently.",                       cat: "Time" },
+    { kr: "가끔.",       en: "Sometimes; occasionally.",                 cat: "Time" },
+    { kr: "-부터.",      en: "From (time/place).",                       cat: "Grammar" },
+    { kr: "-까지.",      en: "Till; until; by.",                         cat: "Grammar" },
+    { kr: "시작.",       en: "Beginning (noun).",                        cat: "Time" },
+    { kr: "시작하다.",   en: "To start; to begin.",                      cat: "Time" },
+    { kr: "끝나다.",     en: "To end; to be over.",                      cat: "Time" },
+    { kr: "보내다.",     en: "To spend (time).",                         cat: "Time" },
+    { kr: "시간.",       en: "An hour (duration); time.",                cat: "Time" },
+    { kr: "-시.",        en: "Hour; o'clock.",                           cat: "Grammar" },
+    { kr: "-분.",        en: "Minute.",                                  cat: "Grammar" },
+    { kr: "-주.",        en: "A week.",                                  cat: "Grammar" },
+    { kr: "-주일.",      en: "A week.",                                  cat: "Grammar" },
+    { kr: "반.",         en: "A half; half of.",                         cat: "Time" },
+    { kr: "하루.",       en: "A day.",                                   cat: "Time" },
+    { kr: "-에.",        en: "Per.",                                     cat: "Grammar" },
+    { kr: "-번.",        en: "A time/times; number.",                    cat: "Grammar" },
+    { kr: "언제.",       en: "When.",                                    cat: "Vocabulary" },
+    { kr: "얼마나.",     en: "How much/many (quantity or duration).",    cat: "Vocabulary" },
+    { kr: "오전.",       en: "a.m.; morning.",                           cat: "Time" },
+    { kr: "오후.",       en: "p.m.; afternoon.",                         cat: "Time" },
+    { kr: "점심.",       en: "Lunch; lunch time.",                       cat: "Time" },
+    { kr: "저녁.",       en: "Evening; dinner.",                         cat: "Time" },
+    { kr: "-쯤.",        en: "About; approximately.",                    cat: "Grammar" },
+  ],
 };
 
 // Tag every phrase with its source list name (__list) so any flattened
@@ -751,6 +855,27 @@ const LISTS = {
 Object.entries(LISTS).forEach(([listName, phrases]) => {
   phrases.forEach(phrase => { phrase.__list = listName; });
 });
+
+// ── STORIES DATA ──────────────────────────────────────────────────────────
+const STORIES = {
+  "1.4C — Directions to the Dormitory": {
+    list: "1.4 C",
+    sentences: [
+      { speaker: "남", kr: "학교 정문에서 육군 기숙사에 어떻게 가요?" },
+      { speaker: "여", kr: "체육관을 아세요?" },
+      { speaker: "남", kr: "아니요, 잘 모릅니다." },
+      { speaker: "여", kr: "그럼, 저 길에서 오른쪽으로 도세요." },
+      { speaker: "남", kr: "아, 저 사거리에서 우회전해요?" },
+      { speaker: "여", kr: "네. 그리고 쭉 가세요." },
+      { speaker: "여", kr: "그럼 왼쪽에 큰 노란색 건물이 나와요." },
+      { speaker: "여", kr: "그 건물이 학생 식당이에요." },
+      { speaker: "남", kr: "네." },
+      { speaker: "여", kr: "학생 식당 바로 뒤에 기숙사가 있어요." },
+      { speaker: "여", kr: "첫 번째 건물이 육군 기숙사입니다." },
+      { speaker: "남", kr: "감사합니다." },
+    ]
+  }
+};
 
 // ── GLOBAL STATE ──────────────────────────────────────────────────────────
 let mode         = 'study';
@@ -768,6 +893,14 @@ let lockedSyls    = [];
 let currentPhrase = null;
 let composingChar = '';
 let submittedWrong = false;
+
+// ── STORIES STATE ─────────────────────────────────────────────────────────
+let currentStoryKey  = null;   // key into STORIES
+let storySubMode     = 'read'; // 'read' | 'drill' | 'mask'
+let storySentenceIdx = 0;      // current sentence index during drill/mask
+let storyResults     = [];     // { idx, correct } per sentence this pass
+let maskPassNumber   = 1;      // which progressive mask pass we're on
+let maskPassWords    = new Map(); // sentence-index -> Set of word indices masked this pass
 
 // ── PRONOUNCE MODE STATE ─────────────────────────────────────────────────
 const PRONOUNCE_PROXY_URL = "https://korean-pronunciation-proxy.cgmn9jdtsh.workers.dev";
@@ -859,18 +992,18 @@ function switchMode(m) {
   document.getElementById('tabQuiz').classList.toggle('active',  m === 'quiz');
   document.getElementById('tabPronounce').classList.toggle('active', m === 'pronounce');
   document.getElementById('tabReview').classList.toggle('active', m === 'review');
+  document.getElementById('tabStories').classList.toggle('active', m === 'stories');
   document.getElementById('scoreDisplay').textContent = '';
 
-  // Review mode pulls from ALL lists regardless of selection, since spaced
-  // repetition is inherently a global, cross-list concept — so the list
-  // selector (which scopes Study/Quiz/Pronounce) doesn't apply here.
+  // Review and Stories hide the list selector since they operate globally
   const selectorWrap = document.querySelector('.selector-wrap');
-  if (selectorWrap) selectorWrap.style.display = (m === 'review') ? 'none' : '';
+  if (selectorWrap) selectorWrap.style.display = (m === 'review' || m === 'stories') ? 'none' : '';
 
-  if (m === 'study') { renderListSelector(); renderStudy(); }
-  else if (m === 'quiz') { renderListSelector(); startQuiz(); }
+  if (m === 'study')    { renderListSelector(); renderStudy(); }
+  else if (m === 'quiz')     { renderListSelector(); startQuiz(); }
   else if (m === 'pronounce') { renderListSelector(); startPronounce(); }
-  else { startReview(); }
+  else if (m === 'review')   { startReview(); }
+  else                       { renderStorySelector(); }
 }
 
 // ── STUDY MODE ────────────────────────────────────────────────────────────
@@ -2140,7 +2273,443 @@ async function setListOverrideAndRefresh(listName, value) {
   refreshReviewBadge();
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+// ── STORIES MODE ─────────────────────────────────────────────────────────
+
+// Story selector screen — shown when Stories tab is first opened
+function renderStorySelector() {
+  const area = document.getElementById('mainArea');
+  const keys = Object.keys(STORIES);
+
+  area.innerHTML = `
+    <div class="category-label">Stories</div>
+    <div class="story-selector-list">
+      ${keys.map(key => {
+        const story = STORIES[key];
+        const count = story.sentences.length;
+        return `
+          <div class="story-card" onclick="openStory('${key.replace(/'/g,"\\'")}')">
+            <div class="story-card-title">${key}</div>
+            <div class="story-card-meta">${count} lines · ${story.list}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function openStory(key) {
+  currentStoryKey  = key;
+  storySubMode     = 'read';
+  storySentenceIdx = 0;
+  storyResults     = [];
+  maskPassNumber   = 1;
+  maskPassWords    = new Map();
+  renderStoryView();
+}
+
+// Main story view — renders sub-mode tabs + current sub-mode content
+function renderStoryView() {
+  const story = STORIES[currentStoryKey];
+  const area  = document.getElementById('mainArea');
+
+  area.innerHTML = `
+    <button class="story-back-btn" onclick="renderStorySelector()">← All stories</button>
+    <div class="category-label" style="margin-bottom:12px">${currentStoryKey}</div>
+
+    <div class="story-sub-tabs">
+      <button class="story-sub-tab ${storySubMode === 'read'  ? 'active' : ''}" onclick="setStorySubMode('read')">Read</button>
+      <button class="story-sub-tab ${storySubMode === 'drill' ? 'active' : ''}" onclick="setStorySubMode('drill')">Drill</button>
+      <button class="story-sub-tab ${storySubMode === 'mask'  ? 'active' : ''}" onclick="setStorySubMode('mask')">Mask</button>
+    </div>
+
+    <div id="storyContent"></div>
+  `;
+
+  renderStoryContent();
+}
+
+function setStorySubMode(sub) {
+  storySubMode     = sub;
+  storySentenceIdx = 0;
+  storyResults     = [];
+  if (sub === 'mask') {
+    maskPassNumber = 1;
+    buildMaskPass();
+  }
+  // Re-render just the sub-tabs active state + content
+  document.querySelectorAll('.story-sub-tab').forEach((btn, i) => {
+    const modes = ['read','drill','mask'];
+    btn.classList.toggle('active', modes[i] === sub);
+  });
+  renderStoryContent();
+}
+
+function renderStoryContent() {
+  if (storySubMode === 'read')  renderStoryRead();
+  else if (storySubMode === 'drill') renderStoryDrillSentence();
+  else                               renderStoryMaskSentence();
+}
+
+// ── READ MODE ─────────────────────────────────────────────────────────────
+function renderStoryRead() {
+  const story   = STORIES[currentStoryKey];
+  const content = document.getElementById('storyContent');
+  if (!content) return;
+
+  content.innerHTML = `
+    <div style="margin-bottom:8px">
+      ${story.sentences.map((s, i) => `
+        <div class="story-read-line">
+          <span class="story-speaker">${s.speaker}</span>
+          <span class="story-line-kr">${s.kr}</span>
+          <button class="story-line-listen" onclick="speak('${s.kr.replace(/'/g,"\\'")}')">🔊</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="action-row" style="margin-top:16px">
+      <button class="submit-btn" onclick="setStorySubMode('drill')">Start drilling →</button>
+    </div>
+  `;
+}
+
+// ── DRILL MODE ────────────────────────────────────────────────────────────
+// Sentence by sentence in order. User sees previous sentence as context,
+// then types the current sentence from memory using block input.
+function renderStoryDrillSentence() {
+  const story   = STORIES[currentStoryKey];
+  const content = document.getElementById('storyContent');
+  if (!content) return;
+
+  if (storySentenceIdx >= story.sentences.length) {
+    renderStoryDrillSummary();
+    return;
+  }
+
+  const sentence = story.sentences[storySentenceIdx];
+  const prev     = storySentenceIdx > 0 ? story.sentences[storySentenceIdx - 1] : null;
+  const pct      = Math.round((storySentenceIdx / story.sentences.length) * 100);
+
+  // Build block display for the current sentence using existing machinery
+  // We treat the whole sentence as a single "phrase" for the block system
+  currentPhrase = { kr: sentence.kr, en: '', cat: '' };
+  lockedSyls    = getSyllables(sentence.kr).map(() => null);
+  composingChar = '';
+  submittedWrong = false;
+
+  const { html: blocksHTML } = buildBlocksHTML(sentence.kr);
+
+  content.innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span>${storySentenceIdx + 1} / ${story.sentences.length}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+
+    ${prev ? `
+      <div class="story-context-line">
+        <span class="story-context-speaker">${prev.speaker}</span>${prev.kr}
+      </div>
+    ` : '<div style="height:20px"></div>'}
+
+    <div class="story-target-speaker">${sentence.speaker}</div>
+
+    <div class="blocks-area" id="blocksArea">
+      <input class="hidden-input" id="hiddenInput" type="text"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div class="blocks-row">${blocksHTML}</div>
+      <div class="tap-hint" id="tapHint">tap to type</div>
+    </div>
+
+    <div class="submit-row">
+      <button class="submit-btn" onclick="submitStoryDrill()">확인 ↵</button>
+    </div>
+
+    <div class="feedback" id="feedbackLine"></div>
+
+    <div class="action-row">
+      <button class="ghost-btn" onclick="speak('${sentence.kr.replace(/'/g,"\\'")}')">🔊 Listen</button>
+      <button class="ghost-btn" onclick="skipStoryDrill()">Skip →</button>
+    </div>
+  `;
+
+  attachInput();
+}
+
+function submitStoryDrill() {
+  const input = document.getElementById('hiddenInput');
+  if (!input) return;
+  const typedSyls  = committedSyls.slice();
+  if (typedSyls.length === 0) return;
+
+  const targetSyls = getSyllables(currentPhrase.kr);
+  let cur = 0;
+  const fullSyls = targetSyls.map((_, i) => {
+    if (lockedSyls[i] !== null) return lockedSyls[i];
+    return typedSyls[cur++] || '';
+  });
+  const isCorrect = fullSyls.join('') === targetSyls.join('');
+
+  if (isCorrect) {
+    updateBlocks(typedSyls, 'correct');
+    const fb = document.getElementById('feedbackLine');
+    if (fb) { fb.textContent = '✓'; fb.className = 'feedback correct'; }
+    // Only record first-attempt result
+    if (!submittedWrong) {
+      storyResults.push({ idx: storySentenceIdx, correct: true });
+    }
+    setTimeout(() => {
+      storySentenceIdx++;
+      renderStoryDrillSentence();
+    }, 800);
+  } else {
+    submittedWrong = true;
+    // Lock correct syllables, shake wrong
+    const newLocked = [...lockedSyls];
+    let j = 0;
+    targetSyls.forEach((targetCh, i) => {
+      if (newLocked[i] !== null) return;
+      if (typedSyls[j] === targetCh) newLocked[i] = targetCh;
+      j++;
+    });
+    lockedSyls = newLocked;
+    updateBlocks(typedSyls, 'wrong');
+    const fb = document.getElementById('feedbackLine');
+    if (fb) { fb.textContent = '✗ 다시 해 보세요.'; fb.className = 'feedback wrong'; fb.dataset.state = 'wrong'; }
+    storyResults.push({ idx: storySentenceIdx, correct: false });
+    setTimeout(() => {
+      input.value = '';
+      committedSyls = [];
+      composingChar = '';
+      updateBlocks([], 'typing');
+      input.focus({ preventScroll: true });
+    }, 500);
+  }
+}
+
+function skipStoryDrill() {
+  storyResults.push({ idx: storySentenceIdx, correct: false });
+  storySentenceIdx++;
+  renderStoryDrillSentence();
+}
+
+function renderStoryDrillSummary() {
+  const story   = STORIES[currentStoryKey];
+  const content = document.getElementById('storyContent');
+  if (!content) return;
+
+  // Deduplicate: first result per sentence index counts
+  const seen = new Map();
+  storyResults.forEach(r => {
+    if (!seen.has(r.idx)) seen.set(r.idx, r.correct);
+  });
+
+  const total   = story.sentences.length;
+  const correct = [...seen.values()].filter(Boolean).length;
+  const pct     = Math.round((correct / total) * 100);
+  const stamp   = pct === 100 ? '만점!' : pct >= 70 ? '잘했어요' : '다시 해봐요';
+
+  content.innerHTML = `
+    <div class="end-screen">
+      <div class="stamp">${stamp}</div>
+      <div class="end-score">${correct} / ${total}</div>
+      <div class="end-label">${pct}% first-attempt correct</div>
+      <div class="end-breakdown">
+        ${story.sentences.map((s, i) => {
+          const res = seen.get(i);
+          const mark = res === undefined ? '—'
+            : res ? '<span style="color:var(--correct)">✓</span>'
+            : '<span style="color:var(--red-stamp)">✗</span>';
+          return `
+            <div class="breakdown-row">
+              <span style="font-size:11px;color:var(--red-stamp);font-weight:700;text-transform:uppercase;flex-shrink:0;width:22px">${s.speaker}</span>
+              <span class="kr" style="font-size:14px">${s.kr}</span>
+              <span class="mark">${mark}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="submit-btn" onclick="setStorySubMode('drill')">다시 하기</button>
+        <button class="restart-btn" onclick="setStorySubMode('mask')">Try Mask mode →</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── MASK (PROGRESSIVE MASKING) MODE ──────────────────────────────────────
+// Each pass, words that were recalled correctly get masked (blanked out).
+// Words still being learned stay visible. The story gets progressively
+// harder as more words disappear into memory.
+// We track masking at the word level: a "word" here is a space-delimited
+// token within each sentence. Punctuation stays visible always.
+
+function tokenizeSentenceWords(kr) {
+  // Returns array of { text, isMaskable } tokens.
+  // Space-delimited segments that contain Hangul are maskable.
+  return kr.split(' ').map(word => ({
+    text: word,
+    isMaskable: getSyllables(word).length > 0,
+  }));
+}
+
+function buildMaskPass() {
+  // On pass 1: mask nothing (start fully visible, then let the user
+  // choose words to recall). Actually: pass 1 shows the full text and
+  // the user taps words they want to test. Passes 2+ progressively mask
+  // words they got right in the previous pass.
+  // Simplified implementation: each pass randomly selects ~30% more words
+  // to mask, ensuring words that were correct last pass are always masked.
+  // This gives a natural progressive feel without complex state tracking.
+  const story = STORIES[currentStoryKey];
+  maskPassWords = new Map();
+
+  story.sentences.forEach((s, si) => {
+    const words = tokenizeSentenceWords(s.kr);
+    const maskable = words.map((w, wi) => w.isMaskable ? wi : -1).filter(i => i >= 0);
+    // How many to mask: increases per pass, caps at all maskable words
+    const maskCount = Math.min(
+      maskable.length,
+      Math.ceil(maskable.length * Math.min(1, maskPassNumber * 0.35))
+    );
+    // Pick deterministically but varied: shuffle maskable indices by pass seed
+    const seeded = [...maskable].sort((a, b) =>
+      ((a * 37 + maskPassNumber * 17) % 97) - ((b * 37 + maskPassNumber * 17) % 97)
+    );
+    maskPassWords.set(si, new Set(seeded.slice(0, maskCount)));
+  });
+}
+
+function renderStoryMaskSentence() {
+  const story   = STORIES[currentStoryKey];
+  const content = document.getElementById('storyContent');
+  if (!content) return;
+
+  if (storySentenceIdx >= story.sentences.length) {
+    renderStoryMaskSummary();
+    return;
+  }
+
+  const sentence  = story.sentences[storySentenceIdx];
+  const prev      = storySentenceIdx > 0 ? story.sentences[storySentenceIdx - 1] : null;
+  const maskedSet = maskPassWords.get(storySentenceIdx) || new Set();
+  const words     = tokenizeSentenceWords(sentence.kr);
+  const pct       = Math.round((storySentenceIdx / story.sentences.length) * 100);
+
+  // Build the inline masked sentence HTML
+  const maskedHTML = words.map((w, wi) => {
+    if (maskedSet.has(wi)) {
+      // Blank — user needs to recall this word
+      const placeholder = '　'.repeat(Math.max(1, w.text.length)); // ideographic space for width
+      return `<span class="mask-blank" id="mask-${storySentenceIdx}-${wi}" data-word="${w.text.replace(/"/g,'&quot;')}">${placeholder}</span>`;
+    }
+    return `<span class="mask-word">${w.text}</span>`;
+  }).join(' ');
+
+  const totalBlanks = [...maskedSet].length;
+
+  content.innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span>${storySentenceIdx + 1} / ${story.sentences.length} · Pass ${maskPassNumber}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+
+    ${prev ? `
+      <div class="story-context-line">
+        <span class="story-context-speaker">${prev.speaker}</span>${prev.kr}
+      </div>
+    ` : '<div style="height:20px"></div>'}
+
+    <div class="story-target-speaker">${sentence.speaker}</div>
+
+    <div class="mask-sentence" id="maskSentence">${maskedHTML}</div>
+
+    <div class="feedback" id="maskFeedback" style="height:22px;margin-bottom:12px"></div>
+
+    <div class="action-row" style="flex-wrap:wrap;gap:8px">
+      ${totalBlanks > 0 ? `<button class="submit-btn" onclick="revealMaskSentence()">Reveal →</button>` : ''}
+      <button class="ghost-btn" onclick="speak('${sentence.kr.replace(/'/g,"\\'")}')">🔊 Listen</button>
+      <button class="ghost-btn" onclick="advanceMaskSentence(true)">Got it ✓</button>
+      <button class="ghost-btn" onclick="advanceMaskSentence(false)">Missed ✗</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px">
+      ${totalBlanks === 0 ? 'No blanks this pass — tap Got it or Missed.' : `${totalBlanks} word${totalBlanks !== 1 ? 's' : ''} blanked. Listen, recall, then reveal to check.`}
+    </div>
+  `;
+}
+
+function revealMaskSentence() {
+  const sentence  = STORIES[currentStoryKey].sentences[storySentenceIdx];
+  const maskedSet = maskPassWords.get(storySentenceIdx) || new Set();
+  const words     = tokenizeSentenceWords(sentence.kr);
+  maskedSet.forEach(wi => {
+    const el = document.getElementById(`mask-${storySentenceIdx}-${wi}`);
+    if (el) {
+      el.textContent = words[wi].text;
+      el.classList.add('revealed');
+    }
+  });
+  const fb = document.getElementById('maskFeedback');
+  if (fb) fb.textContent = 'Did you recall all the blanked words?';
+}
+
+function advanceMaskSentence(gotIt) {
+  storyResults.push({ idx: storySentenceIdx, correct: gotIt });
+  storySentenceIdx++;
+  renderStoryMaskSentence();
+}
+
+function renderStoryMaskSummary() {
+  const story   = STORIES[currentStoryKey];
+  const content = document.getElementById('storyContent');
+  if (!content) return;
+
+  const total   = story.sentences.length;
+  const correct = storyResults.filter(r => r.correct).length;
+  const pct     = Math.round((correct / total) * 100);
+  const allGood = pct === 100;
+  const stamp   = allGood ? '만점!' : pct >= 70 ? '잘했어요' : '다시 해봐요';
+
+  content.innerHTML = `
+    <div class="end-screen">
+      <div class="stamp">${stamp}</div>
+      <div class="end-score">${correct} / ${total}</div>
+      <div class="end-label">Pass ${maskPassNumber} — ${pct}% recalled</div>
+      <div class="end-breakdown">
+        ${story.sentences.map((s, i) => {
+          const r = storyResults.find(r => r.idx === i);
+          const mark = !r ? '—'
+            : r.correct ? '<span style="color:var(--correct)">✓</span>'
+            : '<span style="color:var(--red-stamp)">✗</span>';
+          return `
+            <div class="breakdown-row">
+              <span style="font-size:11px;color:var(--red-stamp);font-weight:700;text-transform:uppercase;flex-shrink:0;width:22px">${s.speaker}</span>
+              <span class="kr" style="font-size:14px">${s.kr}</span>
+              <span class="mark">${mark}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        ${!allGood ? `<button class="submit-btn" onclick="nextMaskPass()">Next pass (harder) →</button>` : ''}
+        <button class="ghost-btn" onclick="setStorySubMode('mask')">Restart mask</button>
+        <button class="restart-btn" onclick="setStorySubMode('read')">Back to Read</button>
+      </div>
+    </div>
+  `;
+}
+
+function nextMaskPass() {
+  maskPassNumber++;
+  storySentenceIdx = 0;
+  storyResults     = [];
+  buildMaskPass();
+  renderStoryMaskSentence();
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
   // Default to system preference if available
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
