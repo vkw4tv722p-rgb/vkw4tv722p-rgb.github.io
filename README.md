@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -847,6 +848,29 @@ const LISTS = {
     { kr: "저녁.",       en: "Evening; dinner.",                         cat: "Time" },
     { kr: "-쯤.",        en: "About; approximately.",                    cat: "Grammar" },
   ],
+  "2.5 B": [
+    { kr: "군복.",           en: "A military uniform.",                     cat: "Vocabulary" },
+    { kr: "입다.",           en: "To wear (clothes).",                      cat: "Vocabulary" },
+    { kr: "돌아가다.",       en: "To return; \"to return and go\".",        cat: "Vocabulary" },
+    { kr: "돌아오다.",       en: "To return; \"to return and come\".",      cat: "Vocabulary" },
+    { kr: "마시다.",         en: "To drink.",                               cat: "Vocabulary" },
+    { kr: "샤워.",           en: "A shower.",                               cat: "Vocabulary" },
+    { kr: "샤워하다.",       en: "To take a shower.",                       cat: "Vocabulary" },
+    { kr: "세수.",           en: "Washing one's face.",                     cat: "Vocabulary" },
+    { kr: "세수하다.",       en: "To wash one's face.",                     cat: "Vocabulary" },
+    { kr: "수업을 듣다.",    en: "To take a class.",                        cat: "Vocabulary" },
+    { kr: "씻다.",           en: "To wash; to rinse.",                      cat: "Vocabulary" },
+    { kr: "이를 닦다.",      en: "To brush one's teeth.",                   cat: "Vocabulary" },
+    { kr: "일어나다.",       en: "To get up; to wake up; to rise.",         cat: "Vocabulary" },
+    { kr: "연습.",           en: "Practicing (noun).",                      cat: "Vocabulary" },
+    { kr: "연습하다.",       en: "To practice.",                            cat: "Vocabulary" },
+    { kr: "말하기.",         en: "Speaking.",                               cat: "Vocabulary" },
+    { kr: "아침.",           en: "a.m.; morning; breakfast.",               cat: "Time" },
+    { kr: "-서.",        en: "And thus; and then; so; because. (Full form: -아서 / -어서)", cat: "Grammar", prefix: "-아/어" },
+    { kr: "늘.",             en: "Always; all the time.",                   cat: "Vocabulary" },
+    { kr: "정도.",           en: "About; approximately.",                   cat: "Vocabulary" },
+    { kr: "다음.",           en: "Next; the following.",                    cat: "Vocabulary" },
+  ],
 };
 
 // Tag every phrase with its source list name (__list) so any flattened
@@ -916,7 +940,7 @@ let recordedChunks    = [];
 let isRecording       = false;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
-const PUNCT = new Set(['.', '?', '!', ',', '·', '~', '+', '-']);
+const PUNCT = new Set(['.', '?', '!', ',', '·', '~', '+', '-', '/']);
 
 function isHangulSyllable(ch) {
   const c = ch.codePointAt(0);
@@ -1347,6 +1371,7 @@ function renderQuiz(phrases) {
     <div class="blocks-area" id="blocksArea">
       <input class="hidden-input" id="hiddenInput" type="text"
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      ${phrase.prefix ? `<div style="font-family:'Gowun Dodum',sans-serif;font-size:18px;color:var(--muted);margin-bottom:6px">${phrase.prefix}</div>` : ''}
       <div class="blocks-row">${blocksHTML}</div>
       <div class="tap-hint" id="tapHint">tap to type</div>
     </div>
@@ -1782,6 +1807,7 @@ function renderPronounce() {
     </div>
 
     <div class="pronounce-card">
+      ${phrase.prefix ? `<div style="font-family:'Gowun Dodum',sans-serif;font-size:18px;color:var(--muted);margin-bottom:6px;text-align:center">${phrase.prefix}</div>` : ''}
       <div class="blocks-row" id="pronounceBlocks" style="justify-content:center;margin-bottom:24px">${blocksHTML}</div>
 
       <div class="record-label" id="recordLabel">Tap to record</div>
