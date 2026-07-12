@@ -1230,6 +1230,7 @@ function clearWrongFeedback() {
 // ── SUBMIT ────────────────────────────────────────────────────────────────
 function submitAnswer() {
   const input = document.getElementById('hiddenInput');
+  if (!input || input.disabled) return; // guard: ignore if locked out after correct answer
   if (!input) return;
   const typedSyls = committedSyls.slice(); // use our tracked committed state
   if (typedSyls.length === 0) return;
@@ -1250,15 +1251,20 @@ function submitAnswer() {
     const fb = document.getElementById('feedbackLine');
     if (fb) { fb.textContent = '✓ 맞았어요!'; fb.className = 'feedback correct'; fb.dataset.state = 'correct'; }
     quizScore++;
-    // If key still in currentRoundKeys, no wrong attempt happened this round → first
-    // If key already removed (wrong attempt occurred), → corrected
     const isFirst = currentRoundKeys.has(phrase.kr);
     phraseStatus.set(phrase.kr, { phrase, status: isFirst ? 'first' : 'corrected' });
     currentRoundKeys.delete(phrase.kr);
-    // Only the FIRST attempt on this question counts toward spaced-repetition
-    // tracking — retries within the same question aren't a fresh recall test.
     if (isFirst) recordSrsAttempt(phrase.kr, true);
     document.getElementById('scoreDisplay').textContent = `★ ${quizScore}`;
+
+    // Disable the submit button and blur/disable the input immediately so
+    // rapid Enter presses during the 1-second advance delay don't fire
+    // another submission and corrupt the score.
+    const submitBtn = document.querySelector('.submit-btn');
+    if (submitBtn) submitBtn.disabled = true;
+    const inp = document.getElementById('hiddenInput');
+    if (inp) { inp.disabled = true; inp.blur(); }
+
     setTimeout(() => advanceQuiz(), 1000);
   } else {
     submittedWrong = true;
