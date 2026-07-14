@@ -948,7 +948,8 @@ let currentRoundKeys = new Set(); // kr keys in the current round — used to de
 let lockedSyls    = [];
 let currentPhrase = null;
 let composingChar = '';
-let submittedWrong = false;
+let submittedWrong   = false;
+let submissionLocked = false; // true during the advance delay after a correct answer
 
 // ── STORIES STATE ─────────────────────────────────────────────────────────
 let currentStoryKey  = null;   // key into STORIES
@@ -1012,11 +1013,12 @@ function shuffle(arr) {
 }
 
 function resetInputState(phrase) {
-  currentPhrase = phrase;
-  composingChar = '';
-  committedSyls = [];
-  isComposing   = false;
-  lockedSyls    = getSyllables(phrase.kr).map(() => null);
+  currentPhrase    = phrase;
+  composingChar    = '';
+  committedSyls    = [];
+  isComposing      = false;
+  submissionLocked = false;
+  lockedSyls       = getSyllables(phrase.kr).map(() => null);
 }
 
 // ── LIST SELECTOR ─────────────────────────────────────────────────────────
@@ -1229,8 +1231,9 @@ function clearWrongFeedback() {
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────
 function submitAnswer() {
+  if (submissionLocked) return; // guard: ignore during advance delay after correct answer
   const input = document.getElementById('hiddenInput');
-  if (!input || input.disabled) return; // guard: ignore if locked out after correct answer
+  if (!input) return;
   if (!input) return;
   const typedSyls = committedSyls.slice(); // use our tracked committed state
   if (typedSyls.length === 0) return;
@@ -1257,14 +1260,9 @@ function submitAnswer() {
     if (isFirst) recordSrsAttempt(phrase.kr, true);
     document.getElementById('scoreDisplay').textContent = `★ ${quizScore}`;
 
-    // Disable the submit button and blur/disable the input immediately so
-    // rapid Enter presses during the 1-second advance delay don't fire
-    // another submission and corrupt the score.
-    const submitBtn = document.querySelector('.submit-btn');
-    if (submitBtn) submitBtn.disabled = true;
-    const inp = document.getElementById('hiddenInput');
-    if (inp) { inp.disabled = true; inp.blur(); }
-
+    // Lock out further submissions during the advance delay without
+    // touching input.disabled (which causes iOS Safari to dismiss the keyboard).
+    submissionLocked = true;
     setTimeout(() => advanceQuiz(), 1000);
   } else {
     submittedWrong = true;
