@@ -928,6 +928,35 @@ const LISTS = {
     { kr: "하늘.",       en: "The sky.",                                 cat: "Weather" },
     { kr: "흐리다.",     en: "To be cloudy.",                            cat: "Descriptors" },
   ],
+  "2.6 B": [
+    { kr: "-고 싶다.",     en: "Want to; wish to (first person — one's own desire).",   cat: "Grammar" },
+    { kr: "-고 싶어하다.", en: "Want to; wish to (third person — someone else's desire).", cat: "Grammar" },
+    { kr: "못.",           en: "Unable to; cannot (used before a verb).",               cat: "Grammar", prefix: "못+" },
+    { kr: "취미.",         en: "A hobby.",                                              cat: "Vocabulary" },
+    { kr: "골프.",         en: "Golf.",                                                 cat: "Sports" },
+    { kr: "농구.",         en: "Basketball.",                                           cat: "Sports" },
+    { kr: "배구.",         en: "Volleyball.",                                           cat: "Sports" },
+    { kr: "야구.",         en: "Baseball.",                                             cat: "Sports" },
+    { kr: "축구.",         en: "Soccer; football.",                                     cat: "Sports" },
+    { kr: "탁구.",         en: "Table tennis.",                                         cat: "Sports" },
+    { kr: "볼링.",         en: "Bowling.",                                              cat: "Sports" },
+    { kr: "독서.",         en: "Reading (books).",                                      cat: "Vocabulary" },
+    { kr: "테니스.",       en: "Tennis.",                                               cat: "Sports" },
+    { kr: "스노보드.",     en: "Snowboard.",                                            cat: "Sports" },
+    { kr: "스케이트.",     en: "Skate.",                                                cat: "Sports" },
+    { kr: "스키.",         en: "Ski.",                                                  cat: "Sports" },
+    { kr: "쉽다.",         en: "To be easy.",                                           cat: "Descriptors" },
+    { kr: "어렵다.",       en: "To be difficult.",                                      cat: "Descriptors" },
+    { kr: "여행.",         en: "Travel; travels (noun).",                               cat: "Vocabulary" },
+    { kr: "여행하다.",     en: "To travel.",                                            cat: "Vocabulary" },
+    { kr: "재미있다.",     en: "To be fun; to be enjoyable.",                           cat: "Descriptors" },
+    { kr: "좋아하다.",     en: "To like.",                                              cat: "Vocabulary" },
+    { kr: "배우다.",       en: "To learn.",                                             cat: "Vocabulary" },
+    { kr: "치다.",         en: "To hit; to play (tennis, ping-pong, etc.).",            cat: "Vocabulary" },
+    { kr: "타다.",         en: "To ride; to get on (road or highway).",                 cat: "Vocabulary" },
+    { kr: "어떤-.",        en: "Which; what kind (modifies a following noun).",         cat: "Vocabulary" },
+    { kr: "하지만.",       en: "But; however.",                                         cat: "Vocabulary" },
+  ],
 };
 
 // Tag every phrase with its source list name (__list) so any flattened
@@ -954,6 +983,19 @@ const STORIES = {
       { speaker: "여", kr: "학생 식당 바로 뒤에 기숙사가 있어요." },
       { speaker: "여", kr: "첫 번째 건물이 육군 기숙사입니다." },
       { speaker: "남", kr: "감사합니다." },
+    ]
+  },
+  "2.6A — The Four Seasons of Korea": {
+    list: "2.6 A",
+    sentences: [
+      { speaker: null, kr: "한국은 봄, 여름, 가을, 겨울, 사계절이 있습니다." },
+      { speaker: null, kr: "봄에는 날씨가 따뜻합니다." },
+      { speaker: null, kr: "가끔 바람이 불고 비도 조금 내립니다." },
+      { speaker: null, kr: "여름은 아주 덥습니다." },
+      { speaker: null, kr: "구름이 많이 끼고 비가 자주 옵니다." },
+      { speaker: null, kr: "가을에는 조금 쌀쌀합니다." },
+      { speaker: null, kr: "하늘이 높고 맑습니다." },
+      { speaker: null, kr: "겨울은 춥고 눈이 자주 옵니다." },
     ]
   }
 };
@@ -2447,7 +2489,7 @@ function renderStoryRead() {
     <div style="margin-bottom:8px">
       ${story.sentences.map((s, i) => `
         <div class="story-read-line">
-          <span class="story-speaker">${s.speaker}</span>
+          <span class="story-speaker">${s.speaker ?? ""}</span>
           <span class="story-line-kr">${s.kr}</span>
           <button class="story-line-listen" onclick="speak('${s.kr.replace(/'/g,"\\'")}')">🔊</button>
         </div>
@@ -2495,11 +2537,11 @@ function renderStoryDrillSentence() {
 
     ${prev ? `
       <div class="story-context-line">
-        <span class="story-context-speaker">${prev.speaker}</span>${prev.kr}
+        <span class="story-context-speaker">${prev.speaker ? prev.speaker : ""}</span>${prev.kr}
       </div>
     ` : '<div style="height:20px"></div>'}
 
-    <div class="story-target-speaker">${sentence.speaker}</div>
+    ${sentence.speaker ? `<div class="story-target-speaker">${sentence.speaker}</div>` : ""}
 
     <div class="blocks-area" id="blocksArea">
       <input class="hidden-input" id="hiddenInput" type="text"
@@ -2609,7 +2651,7 @@ function renderStoryDrillSummary() {
             : '<span style="color:var(--red-stamp)">✗</span>';
           return `
             <div class="breakdown-row">
-              <span style="font-size:11px;color:var(--red-stamp);font-weight:700;text-transform:uppercase;flex-shrink:0;width:22px">${s.speaker}</span>
+              <span style="font-size:11px;color:var(--red-stamp);font-weight:700;text-transform:uppercase;flex-shrink:0;width:22px">${s.speaker ?? ""}</span>
               <span class="kr" style="font-size:14px">${s.kr}</span>
               <span class="mark">${mark}</span>
             </div>
@@ -2705,11 +2747,11 @@ function renderStoryMaskSentence() {
 
     ${prev ? `
       <div class="story-context-line">
-        <span class="story-context-speaker">${prev.speaker}</span>${prev.kr}
+        <span class="story-context-speaker">${prev.speaker ? prev.speaker : ""}</span>${prev.kr}
       </div>
     ` : '<div style="height:20px"></div>'}
 
-    <div class="story-target-speaker">${sentence.speaker}</div>
+    ${sentence.speaker ? `<div class="story-target-speaker">${sentence.speaker}</div>` : ""}
 
     <div class="mask-sentence" id="maskSentence">${maskedHTML}</div>
 
@@ -2772,7 +2814,7 @@ function renderStoryMaskSummary() {
             : '<span style="color:var(--red-stamp)">✗</span>';
           return `
             <div class="breakdown-row">
-              <span style="font-size:11px;color:var(--red-stamp);font-weight:700;text-transform:uppercase;flex-shrink:0;width:22px">${s.speaker}</span>
+              <span style="font-size:11px;color:var(--red-stamp);font-weight:700;text-transform:uppercase;flex-shrink:0;width:22px">${s.speaker ?? ""}</span>
               <span class="kr" style="font-size:14px">${s.kr}</span>
               <span class="mark">${mark}</span>
             </div>
