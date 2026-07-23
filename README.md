@@ -112,9 +112,30 @@
   /* ── LIST SELECTOR ── */
   .selector-wrap { margin-bottom: 20px; }
   .selector-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted-2); margin-bottom: 8px; }
-  .list-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chapter-group { margin-bottom: 6px; border: 1.5px solid var(--ruled); border-radius: 6px; overflow: hidden; }
+  .chapter-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; cursor: pointer; user-select: none;
+    background: var(--card-bg);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+    color: var(--ink); transition: background 0.15s;
+  }
+  .chapter-header:hover { background: var(--blue-light); }
+  .chapter-header-left { display: flex; align-items: center; gap: 8px; }
+  .chapter-header-arrow { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
+  .chapter-header-arrow.open { transform: rotate(90deg); }
+  .chapter-active-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--blue-ink); flex-shrink: 0;
+  }
+  .chapter-chips {
+    display: none; flex-wrap: wrap; gap: 6px;
+    padding: 8px 12px 10px; background: var(--card-bg);
+    border-top: 1px solid var(--ruled);
+  }
+  .chapter-chips.open { display: flex; }
   .list-chip {
-    padding: 6px 14px; border-radius: 20px;
+    padding: 5px 12px; border-radius: 16px;
     border: 1.5px solid var(--blue-ink); background: var(--blue-light);
     font-family: 'Quicksand', sans-serif; font-size: 12px; font-weight: 700;
     color: var(--blue-ink); cursor: pointer; letter-spacing: 0.5px;
@@ -122,8 +143,7 @@
   }
   .list-chip.selected { opacity: 1; }
   .list-chip:not(.selected) { opacity: 0.3; }
-  .list-chip:hover:not(.selected):not(.only-one) { opacity: 0.5; }
-  .list-chip.only-one { cursor: not-allowed; }
+  .list-chip:hover:not(.selected) { opacity: 0.5; }
 
   /* ── CATEGORY LABEL ── */
   .category-label {
@@ -483,7 +503,7 @@
 
   <div class="selector-wrap">
     <div class="selector-label" id="selectorLabel">Lists</div>
-    <div class="list-chips" id="listSelector"></div>
+    <div id="listSelector"></div>
   </div>
 
   <div id="mainArea"></div>
@@ -1072,6 +1092,81 @@ const LISTS = {
     { kr: "그런데.",       en: "By the way; however; but; and.",                        cat: "Vocabulary" },
     { kr: "~얼마예요?",    en: "How much is ~?",                                        cat: "Expressions" },
   ],
+  "2.8 A": [
+    { kr: "거기.",         en: "There.",                                                cat: "Vocabulary" },
+    { kr: "떠나다.",       en: "To leave (a place).",                                   cat: "Vocabulary" },
+    { kr: "출발.",         en: "Departure.",                                            cat: "Vocabulary" },
+    { kr: "출발하다.",     en: "To depart; to set out.",                                cat: "Vocabulary" },
+    { kr: "도착.",         en: "Arrival.",                                              cat: "Vocabulary" },
+    { kr: "도착하다.",     en: "To arrive.",                                            cat: "Vocabulary" },
+    { kr: "놀다.",         en: "To have fun; to play.",                                 cat: "Vocabulary" },
+    { kr: "돌아다니다.",   en: "To go around; to walk around; to roam.",                cat: "Vocabulary" },
+    { kr: "운전.",         en: "Driving.",                                              cat: "Vocabulary" },
+    { kr: "운전하다.",     en: "To drive; to operate.",                                 cat: "Vocabulary" },
+    { kr: "막히다.",       en: "To be blocked; to be congested.",                       cat: "Vocabulary" },
+    { kr: "피곤하다.",     en: "To be tired.",                                          cat: "Descriptors" },
+    { kr: "춤추다.",       en: "To dance.",                                             cat: "Vocabulary" },
+    { kr: "한복.",         en: "Traditional Korean dress (Hanbok).",                    cat: "Vocabulary" },
+    { kr: "박물관.",       en: "A museum.",                                             cat: "Vocabulary" },
+    { kr: "선물.",         en: "A gift; a present.",                                    cat: "Vocabulary" },
+    { kr: "아시아.",       en: "Asia.",                                                 cat: "Vocabulary" },
+    { kr: "오래.",         en: "For a long time.",                                      cat: "Vocabulary" },
+    { kr: "늦게.",         en: "Late (as in arrive late).",                             cat: "Vocabulary" },
+    { kr: "먼저.",         en: "First of all; to begin with.",                          cat: "Vocabulary" },
+  ],
+  "2.8 B": [
+    { kr: "날.",           en: "Day.",                                                  cat: "Vocabulary" },
+    { kr: "장교.",         en: "An officer.",                                           cat: "Military" },
+    { kr: "준위.",         en: "A warrant officer; \"deputy officer\".",                cat: "Military" },
+    { kr: "소위.",         en: "A second lieutenant; \"young officer\".",               cat: "Military" },
+    { kr: "중위.",         en: "A first lieutenant; \"middle officer\".",               cat: "Military" },
+    { kr: "대위.",         en: "A captain; \"big officer\".",                           cat: "Military" },
+    { kr: "소령.",         en: "A major; \"young governor\".",                          cat: "Military" },
+    { kr: "중령.",         en: "A lieutenant colonel; \"middle governor\".",            cat: "Military" },
+    { kr: "대령.",         en: "A colonel; \"big governor\".",                          cat: "Military" },
+    { kr: "장군.",         en: "A general; \"commander of military\".",                 cat: "Military" },
+    { kr: "준장.",         en: "A brigadier general; \"deputy commander\".",            cat: "Military" },
+    { kr: "소장.",         en: "A major general; \"young commander\".",                 cat: "Military" },
+    { kr: "중장.",         en: "A lieutenant general; \"middle commander\".",           cat: "Military" },
+    { kr: "대장.",         en: "A general; a four-star general; \"big commander\".",    cat: "Military" },
+    { kr: "또.",           en: "Also.",                                                 cat: "Vocabulary" },
+    { kr: "만들다.",       en: "To make.",                                              cat: "Vocabulary" },
+    { kr: "모이다.",       en: "To get together.",                                      cat: "Vocabulary" },
+    { kr: "즐겁다.",       en: "To be pleasant; to be delightful.",                     cat: "Descriptors" },
+    { kr: "진급.",         en: "Promotion.",                                            cat: "Vocabulary" },
+    { kr: "진급하다.",     en: "To get promoted.",                                      cat: "Vocabulary" },
+    { kr: "처음.",         en: "The first time.",                                       cat: "Vocabulary" },
+    { kr: "처음으로.",     en: "For the first time.",                                   cat: "Vocabulary" },
+    { kr: "축하.",         en: "Congratulations.",                                      cat: "Expressions" },
+    { kr: "축하하다.",     en: "To congratulate.",                                      cat: "Expressions" },
+    { kr: "파티.",         en: "Party.",                                                cat: "Vocabulary" },
+    { kr: "파티하다.",     en: "To have a party.",                                      cat: "Vocabulary" },
+    { kr: "술.",           en: "Alcohol; liquor.",                                      cat: "Vocabulary" },
+    { kr: "보다.",         en: "To try (doing).",                                       cat: "Grammar", prefix: "-아/어" },
+    { kr: "어제.",         en: "Yesterday.",                                            cat: "Vocabulary" },
+  ],
+  "2.8 C": [
+    { kr: "그냥.",         en: "Just; without a particular reason.",                    cat: "Vocabulary" },
+    { kr: "그래?",         en: "Really?; Is it so?",                                   cat: "Expressions" },
+    { kr: "기념품.",       en: "A souvenir; \"commemoration item\".",                   cat: "Vocabulary" },
+    { kr: "레스토랑.",     en: "A (fancy) restaurant.",                                 cat: "Vocabulary" },
+    { kr: "수족관.",       en: "An aquarium.",                                          cat: "Vocabulary" },
+    { kr: "바쁘다.",       en: "To be busy.",                                           cat: "Descriptors" },
+    { kr: "시험.",         en: "Test; exam.",                                           cat: "Vocabulary" },
+    { kr: "시험 보다.",    en: "To take a test.",                                       cat: "Vocabulary" },
+    { kr: "심심하다.",     en: "To be bored.",                                          cat: "Descriptors" },
+    { kr: "집안일.",       en: "Housework; chores.",                                    cat: "Vocabulary" },
+    { kr: "집안일하다.",   en: "To do housework.",                                      cat: "Vocabulary" },
+    { kr: "연휴.",         en: "A long weekend; consecutive holidays.",                 cat: "Vocabulary" },
+    { kr: "~동안.",        en: "During.",                                               cat: "Grammar" },
+    { kr: "~만.",          en: "Only.",                                                 cat: "Grammar" },
+    { kr: "하다.",         en: "Must; have to.",                                        cat: "Grammar", prefix: "-아/어야" },
+    { kr: "되다.",         en: "Must; have to (alternate form).",                       cat: "Grammar", prefix: "-아/어야" },
+    { kr: "여기.",         en: "Here.",                                                 cat: "Vocabulary" },
+    { kr: "저기.",         en: "Over there.",                                           cat: "Vocabulary" },
+    { kr: "왜.",           en: "Why.",                                                  cat: "Vocabulary" },
+    { kr: "응.",           en: "Yes (blunt form).",                                     cat: "Expressions" },
+  ],
 };
 
 // Tag every phrase with its source list name (__list) so any flattened
@@ -1141,6 +1236,9 @@ let storyResults     = [];     // { idx, correct } per sentence this pass
 let maskPassNumber   = 1;      // which progressive mask pass we're on
 let maskPassWords    = new Map(); // sentence-index -> Set of word indices masked this pass
 
+// Chapter selector state — tracks which chapter groups are expanded
+let openChapters = new Set(); // e.g. Set { "1.1", "2.7" }
+
 // ── PRONOUNCE MODE STATE ─────────────────────────────────────────────────
 const PRONOUNCE_PROXY_URL = "https://korean-pronunciation-proxy.cgmn9jdtsh.workers.dev";
 let pronouncePhrases  = [];
@@ -1209,11 +1307,45 @@ function renderListSelector() {
   const label     = document.getElementById('selectorLabel');
   if (!container) return;
   label.textContent = mode === 'study' ? 'Lists' : mode === 'quiz' ? 'Quiz list' : 'Practice list';
-  container.innerHTML = Object.keys(LISTS).map(name => {
-    const isSel = selectedLists.has(name);
-    return `<button class="list-chip ${isSel ? 'selected' : ''}"
-      onclick="toggleList('${name}')">${name}</button>`;
+
+  // Group list names by chapter (first 3 chars, e.g. "1.1", "2.7")
+  const chapters = {};
+  Object.keys(LISTS).forEach(name => {
+    const chapter = name.slice(0, 3); // "1.1", "2.5", etc.
+    if (!chapters[chapter]) chapters[chapter] = [];
+    chapters[chapter].push(name);
+  });
+
+  container.innerHTML = Object.entries(chapters).map(([chapter, names]) => {
+    const anySelected = names.some(n => selectedLists.has(n));
+    const isOpen      = openChapters.has(chapter);
+    const dot         = anySelected ? `<span class="chapter-active-dot"></span>` : '';
+    return `
+      <div class="chapter-group">
+        <div class="chapter-header" onclick="toggleChapter('${chapter}')">
+          <div class="chapter-header-left">
+            ${dot}
+            <span>Chapter ${chapter}</span>
+          </div>
+          <span class="chapter-header-arrow ${isOpen ? 'open' : ''}">▶</span>
+        </div>
+        <div class="chapter-chips ${isOpen ? 'open' : ''}">
+          ${names.map(name => {
+            const isSel = selectedLists.has(name);
+            const letter = name.slice(4); // "A", "B", "C"
+            return `<button class="list-chip ${isSel ? 'selected' : ''}"
+              onclick="toggleList('${name}')">${letter}</button>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
   }).join('');
+}
+
+function toggleChapter(chapter) {
+  if (openChapters.has(chapter)) openChapters.delete(chapter);
+  else openChapters.add(chapter);
+  renderListSelector();
 }
 
 function toggleList(name) {
