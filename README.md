@@ -1295,6 +1295,95 @@ const LISTS = {
     { kr: "~이랑.",        en: "With; and (after consonant).",                        cat: "Grammar" },
     { kr: "~랑.",          en: "With; and (after vowel).",                            cat: "Grammar" },
   ],
+  "3.10 A": [
+    { kr: "고속버스.",     en: "An express bus; \"high-speed bus\".",                  cat: "Transport" },
+    { kr: "공항.",         en: "An airport.",                                          cat: "Transport" },
+    { kr: "기차.",         en: "A train (everyday colloquial form).",                  cat: "Transport" },
+    { kr: "열차.",         en: "A train (formal/technical form; used in announcements and signage).", cat: "Transport" },
+    { kr: "렌터카.",       en: "A rental car.",                                        cat: "Transport" },
+    { kr: "배.",           en: "A ship; a boat.",                                      cat: "Transport" },
+    { kr: "버스.",         en: "A bus.",                                               cat: "Transport" },
+    { kr: "지하철.",       en: "A subway; \"underground steel\".",                     cat: "Transport" },
+    { kr: "정류장.",       en: "A bus stop; a taxi stop.",                             cat: "Transport" },
+    { kr: "터미널.",       en: "A terminal.",                                          cat: "Transport" },
+    { kr: "역.",           en: "A train station; a subway station.",                   cat: "Transport" },
+    { kr: "항구.",         en: "A harbor; a port.",                                    cat: "Transport" },
+    { kr: "항.",           en: "A harbor; a port (suffix form only; never used standalone).", cat: "Transport" },
+    { kr: "빠르다.",       en: "To be fast; to be quick.",                             cat: "Descriptors" },
+    { kr: "느리다.",       en: "To be slow.",                                          cat: "Descriptors" },
+    { kr: "싸다.",         en: "To be cheap.",                                         cat: "Descriptors" },
+    { kr: "비싸다.",       en: "To be expensive.",                                     cat: "Descriptors" },
+    { kr: "빌리다.",       en: "To borrow; to rent.",                                  cat: "Vocabulary" },
+    { kr: "비용.",         en: "Expense; cost; expenditure.",                          cat: "Vocabulary" },
+    { kr: "들다.",         en: "To cost.",                                             cat: "Vocabulary" },
+    { kr: "불편하다.",     en: "To be uncomfortable; to be inconvenient.",             cat: "Descriptors" },
+    { kr: "적게.",         en: "Few; little (adverb).",                                cat: "Vocabulary" },
+    { kr: "적다.",         en: "To be few; to be little.",                             cat: "Descriptors" },
+    { kr: "너무.",         en: "Too; too much.",                                       cat: "Vocabulary" },
+    { kr: "더.",           en: "More.",                                                cat: "Vocabulary" },
+    { kr: "~보다.",        en: "More than; ~er than (comparison marker).",             cat: "Grammar" },
+    { kr: "가장.",         en: "The most; the -est (superlative marker).",             cat: "Grammar" },
+  ],
+  "3.10 B": [
+    { kr: "고속도로.",     en: "A highway; \"high-speed road\".",                      cat: "Transport" },
+    { kr: "공사 중.",      en: "Under construction; \"in the middle of construction\".", cat: "Vocabulary" },
+    { kr: "신호등.",       en: "A traffic signal light.",                              cat: "Vocabulary" },
+    { kr: "편의점.",       en: "A convenience store.",                                 cat: "Vocabulary" },
+    { kr: "입구.",         en: "An entrance; \"entering mouth\".",                     cat: "Vocabulary" },
+    { kr: "출구.",         en: "An exit; \"exiting mouth\".",                          cat: "Vocabulary" },
+    { kr: "값.",           en: "Price (everyday colloquial form).",                    cat: "Vocabulary" },
+    { kr: "가격.",         en: "Price (formal/written form).",                         cat: "Vocabulary" },
+    { kr: "내다.",         en: "To pay (money).",                                      cat: "Vocabulary" },
+    { kr: "갈아타다.",     en: "To transfer (means of transportation); \"change and ride\".", cat: "Vocabulary" },
+    { kr: "떨어지다.",     en: "To run out of; to be out of.",                         cat: "Vocabulary" },
+    { kr: "복잡하다.",     en: "To be complicated; (of a road) to be congested.",      cat: "Descriptors" },
+    { kr: "세우다.",       en: "To stop; to park; to pull over.",                      cat: "Vocabulary" },
+    { kr: "길을 잃다.",    en: "To be lost (in direction); \"lose a way\".",           cat: "Vocabulary" },
+    { kr: "조심.",         en: "Care; caution.",                                       cat: "Vocabulary" },
+    { kr: "조심하다.",     en: "To be careful; to be cautious.",                       cat: "Vocabulary" },
+    { kr: "오늘.",         en: "Today.",                                               cat: "Time" },
+    { kr: "내일.",         en: "Tomorrow.",                                            cat: "Time" },
+    { kr: "지금.",         en: "Now.",                                                 cat: "Time" },
+    { kr: "계속.",         en: "Continuously.",                                        cat: "Vocabulary" },
+    { kr: "혹시.",         en: "Perhaps; possibly; by any chance.",                    cat: "Vocabulary" },
+    { kr: "-기 때문에.",   en: "Because (verb form; attaches to verb stem + 기).",     cat: "Grammar" },
+    { kr: "~때문에.",      en: "Because of (noun form; attaches directly to noun).",   cat: "Grammar" },
+  ],
+  "3.10 C": [
+    { kr: "가지고 가다.",  en: "To take something; \"to possess and go\".",            cat: "Vocabulary" },
+    { kr: "가지고 오다.",  en: "To bring something; \"to possess and come\".",         cat: "Vocabulary" },
+    { kr: "데리고 가다.",  en: "To take somebody (to a place).",                       cat: "Vocabulary" },
+    { kr: "모시고 가다.",  en: "To take somebody (honorific).",                        cat: "Vocabulary" },
+    { kr: "데리고 오다.",  en: "To bring somebody.",                                   cat: "Vocabulary" },
+    { kr: "모시고 오다.",  en: "To bring somebody (honorific).",                       cat: "Vocabulary" },
+    { kr: "귀엽다.",       en: "To be cute.",                                          cat: "Descriptors" },
+    { kr: "태어나다.",     en: "To be born.",                                          cat: "Vocabulary" },
+    { kr: "방문.",         en: "A visit.",                                             cat: "Vocabulary" },
+    { kr: "방문하다.",     en: "To visit.",                                            cat: "Vocabulary" },
+    { kr: "되다.",         en: "To become; to be.",                                    cat: "Vocabulary" },
+    { kr: "작년.",         en: "Last year.",                                           cat: "Time" },
+    { kr: "올해.",         en: "This year (everyday colloquial form).",                cat: "Time" },
+    { kr: "금년.",         en: "This year (formal/written form).",                     cat: "Time" },
+    { kr: "내년.",         en: "Next year.",                                           cat: "Time" },
+    { kr: "외할머니.",     en: "Maternal grandmother.",                                cat: "Family" },
+    { kr: "외할아버지.",   en: "Maternal grandfather.",                                cat: "Family" },
+    { kr: "이모.",         en: "Mother's sister.",                                     cat: "Family" },
+    { kr: "이모부.",       en: "Husband of the mother's sister.",                      cat: "Family" },
+    { kr: "작은아버지.",   en: "Father's married younger brother; \"little father\".", cat: "Family" },
+    { kr: "작은어머니.",   en: "Wife of the father's married younger brother; \"little mother\".", cat: "Family" },
+    { kr: "조카.",         en: "A nephew; a niece; a sibling's child.",                cat: "Family" },
+    { kr: "큰아버지.",     en: "Father's married older brother; \"big father\".",      cat: "Family" },
+    { kr: "큰어머니.",     en: "Wife of the father's married older brother; \"big mother\".", cat: "Family" },
+    { kr: "고모.",         en: "Father's sister.",                                     cat: "Family" },
+    { kr: "고모부.",       en: "Husband of father's sister.",                          cat: "Family" },
+    { kr: "형수.",         en: "A man's older brother's wife.",                        cat: "Family" },
+    { kr: "외삼촌.",       en: "Mother's brother.",                                    cat: "Family" },
+    { kr: "사촌.",         en: "A cousin; \"fourth relationship\".",                   cat: "Family" },
+    { kr: "여러.",         en: "Various (types of); often used as 여러 가지.",         cat: "Vocabulary" },
+    { kr: "-는.",          en: "Attributive form for action verbs (present tense).",   cat: "Grammar" },
+    { kr: "-은.",          en: "Attributive form for action verbs (past tense, consonant-ending stem; vowel-ending stem → -ㄴ). Distinct from the stative verb form in 1.4 C.", cat: "Grammar" },
+    { kr: "-을.",          en: "Attributive form for action verbs (future/prospective, consonant-ending stem; vowel-ending stem → -ㄹ).", cat: "Grammar" },
+  ],
 };
 
 // Tag every phrase with its source list name (__list) so any flattened
@@ -1438,7 +1527,8 @@ function renderListSelector() {
 
   const chapters = {};
   Object.keys(LISTS).forEach(name => {
-    const chapter = name.slice(0, 3);
+    const spaceIdx = name.lastIndexOf(' ');
+    const chapter  = name.slice(0, spaceIdx); // e.g. "1.1", "3.10"
     if (!chapters[chapter]) chapters[chapter] = [];
     chapters[chapter].push(name);
   });
@@ -1458,7 +1548,7 @@ function renderListSelector() {
         ? '<div class="chapter-chip-picker">' +
           chapters[chapter].map(name => {
             const isSel  = selectedLists.has(name);
-            const letter = name.slice(4);
+            const letter = name.slice(name.lastIndexOf(' ') + 1);
             return '<button class="list-chip ' + (isSel ? 'selected' : '') +
               '" onclick="toggleList(\'' + name + '\')">' + letter + '</button>';
           }).join('') + '</div>'
@@ -3260,4 +3350,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
