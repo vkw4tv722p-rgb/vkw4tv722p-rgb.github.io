@@ -109,31 +109,89 @@
     vertical-align: 2px;
   }
 
-  /* ── LIST SELECTOR ── */
-  .selector-wrap { margin-bottom: 20px; }
-  .selector-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted-2); margin-bottom: 8px; }
-  .chapter-group { margin-bottom: 6px; border: 1.5px solid var(--ruled); border-radius: 6px; overflow: hidden; }
-  .chapter-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; cursor: pointer; user-select: none;
-    background: var(--card-bg);
-    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
-    color: var(--ink); transition: background 0.15s;
+  /* ── TWO-COLUMN LAYOUT ── */
+  .content-layout {
+    display: flex; align-items: flex-start; gap: 0;
   }
-  .chapter-header:hover { background: var(--blue-light); }
-  .chapter-header-left { display: flex; align-items: center; gap: 8px; }
-  .chapter-header-arrow { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
-  .chapter-header-arrow.open { transform: rotate(90deg); }
-  .chapter-active-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--blue-ink); flex-shrink: 0;
+
+  /* Left sidebar */
+  .sidebar {
+    flex-shrink: 0;
   }
-  .chapter-chips {
-    display: none; flex-wrap: wrap; gap: 6px;
-    padding: 8px 12px 10px; background: var(--card-bg);
-    border-top: 1px solid var(--ruled);
+  .selector-label {
+    font-size: 8px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted-2);
+    text-align: center; margin-bottom: 6px;
+    width: 44px;
   }
-  .chapter-chips.open { display: flex; }
+
+  /* Each chapter row: tab + optional chips side by side */
+  .chapter-row {
+    display: flex; flex-direction: row; align-items: center;
+    gap: 5px; margin-bottom: 4px;
+  }
+  .chapter-tab-strip {
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .chapter-tab {
+    padding: 6px 2px; border-radius: 6px;
+    border: 1.5px solid var(--ruled); background: none;
+    font-family: 'Quicksand', sans-serif; font-size: 10px; font-weight: 700;
+    color: var(--muted); cursor: pointer; letter-spacing: 0.2px;
+    text-align: center; line-height: 1.2; white-space: nowrap;
+    transition: all 0.15s; width: 44px; flex-shrink: 0;
+  }
+  .chapter-tab.active {
+    border-color: var(--blue-ink); background: var(--blue-light);
+    color: var(--blue-ink);
+  }
+  .chapter-tab .tab-dot {
+    display: block; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--blue-ink); margin: 3px auto 0;
+  }
+
+  /* Chips appear inline to the right of the active chapter tab */
+  .chapter-chip-picker {
+    display: flex; flex-direction: column; gap: 4px;
+    animation: chipSlideIn 0.15s ease;
+  }
+  @keyframes chipSlideIn {
+    from { opacity: 0; transform: translateX(-4px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .chapter-chip-picker .list-chip {
+    display: block; width: 100%; text-align: center;
+    padding: 5px 8px; font-size: 11px;
+  }
+
+  /* Right column — persistent selected chips bar + main content */
+  .content-col {
+    flex: 1; min-width: 0; padding-left: 8px;
+  }
+
+  /* Persistent selected chips bar */
+  .selected-chips-bar {
+    display: flex; gap: 5px; overflow-x: auto;
+    padding: 0 0 8px 0; scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .selected-chips-bar::-webkit-scrollbar { display: none; }
+  .selected-chip {
+    flex-shrink: 0; padding: 3px 8px; border-radius: 10px;
+    background: var(--blue-ink); color: #fff;
+    font-family: 'Quicksand', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.3px; white-space: nowrap;
+  }
+  .clear-lists-btn {
+    flex-shrink: 0; padding: 2px 6px; border-radius: 10px;
+    border: 1.5px solid var(--muted-2); background: none;
+    font-family: 'Quicksand', sans-serif; font-size: 10px; font-weight: 700;
+    color: var(--muted); cursor: pointer; line-height: 1;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .clear-lists-btn:hover { border-color: var(--red-stamp); color: var(--red-stamp); }
+
+  /* List chips inside picker */
   .list-chip {
     padding: 5px 12px; border-radius: 16px;
     border: 1.5px solid var(--blue-ink); background: var(--blue-light);
@@ -501,12 +559,20 @@
     <button class="mode-tab"        id="tabStories" onclick="switchMode('stories')">Stories</button>
   </div>
 
-  <div class="selector-wrap">
-    <div class="selector-label" id="selectorLabel">Lists</div>
-    <div id="listSelector"></div>
-  </div>
+  <!-- Two-column layout: chapter strip sidebar on left, content on right -->
+  <div class="content-layout">
+    <!-- Left: chapter strip (hidden in Review/Stories) -->
+    <div class="sidebar" id="sidebar">
+      <div class="selector-label" id="selectorLabel">Lists</div>
+      <div id="listSelector"></div>
+    </div>
 
-  <div id="mainArea"></div>
+    <!-- Right: selected chips bar + main content -->
+    <div class="content-col" id="contentCol">
+      <div class="selected-chips-bar" id="selectedChipsBar" style="display:none"></div>
+      <div id="mainArea"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1167,6 +1233,68 @@ const LISTS = {
     { kr: "왜.",           en: "Why.",                                                  cat: "Vocabulary" },
     { kr: "응.",           en: "Yes (blunt form).",                                     cat: "Expressions" },
   ],
+  "3.9 A": [
+    { kr: "여보세요.",     en: "Hello (when answering the phone).",                    cat: "Expressions" },
+    { kr: "국.",           en: "The first three digits of a phone number.",            cat: "Vocabulary" },
+    { kr: "기다리다.",     en: "To wait.",                                             cat: "Vocabulary" },
+    { kr: "남기다.",       en: "To leave (a message, food, etc.).",                   cat: "Vocabulary" },
+    { kr: "바꾸다.",       en: "To put someone on the phone; to exchange; to replace.", cat: "Vocabulary" },
+    { kr: "보내다.",       en: "To send.",                                             cat: "Vocabulary" },
+    { kr: "부탁.",         en: "A favor.",                                             cat: "Vocabulary" },
+    { kr: "부탁하다.",     en: "To ask a favor; to ask to put someone on the phone.", cat: "Vocabulary" },
+    { kr: "부탁 드리다.",  en: "To ask a favor; to ask to put someone on the phone (honorific).", cat: "Vocabulary" },
+    { kr: "전화를 걸다.",  en: "To make a phone call; \"to dial a phone\".",          cat: "Expressions" },
+    { kr: "다시.",         en: "Again.",                                               cat: "Vocabulary" },
+    { kr: "문자.",         en: "Text.",                                                cat: "Vocabulary" },
+    { kr: "음성.",         en: "Voice.",                                               cat: "Vocabulary" },
+    { kr: "메시지.",       en: "A message.",                                           cat: "Vocabulary" },
+    { kr: "통화 중.",      en: "On the phone; \"in the middle of a phone conversation\".", cat: "Expressions" },
+    { kr: "핸드폰.",       en: "A cell phone; a mobile phone; \"hand phone\".",       cat: "Vocabulary" },
+    { kr: "휴대폰.",       en: "A cell phone; a mobile phone.",                       cat: "Vocabulary" },
+    { kr: "중학교.",       en: "A middle school.",                                    cat: "Vocabulary" },
+    { kr: "잠시만.",       en: "For a moment; for a second.",                         cat: "Vocabulary" },
+    { kr: "잠깐만.",       en: "For a moment; for a second.",                         cat: "Vocabulary" },
+    { kr: "~의.",          en: "Possessive marker; 's.",                              cat: "Grammar" },
+  ],
+  "3.9 B": [
+    { kr: "이틀.",         en: "Two days.",                                            cat: "Time" },
+    { kr: "사흘.",         en: "Three days.",                                          cat: "Time" },
+    { kr: "나흘.",         en: "Four days.",                                           cat: "Time" },
+    { kr: "특별하다.",     en: "To be special.",                                       cat: "Descriptors" },
+    { kr: "편하다.",       en: "To be convenient; to be comfortable.",                 cat: "Descriptors" },
+    { kr: "힘들다.",       en: "To be difficult; to be challenging.",                  cat: "Descriptors" },
+    { kr: "비행기.",       en: "An airplane.",                                         cat: "Vocabulary" },
+    { kr: "표.",           en: "A ticket.",                                            cat: "Vocabulary" },
+    { kr: "아직.",         en: "(Not) yet; still.",                                    cat: "Vocabulary" },
+    { kr: "방학.",         en: "A school break.",                                      cat: "Vocabulary" },
+    { kr: "#박#일.",       en: "~ nights ~ days (counter pattern, e.g. 3박 4일 = three nights four days).", cat: "Grammar" },
+    { kr: "~때.",          en: "Time; when.",                                          cat: "Grammar" },
+    { kr: "-을 거다.",     en: "To be going to— (consonant-ending stem; vowel-ending drops 으 → -ㄹ 거다).", cat: "Grammar" },
+    { kr: "-을 수 있다.",  en: "Can; to be able to.",                                 cat: "Grammar" },
+    { kr: "-을 수 없다.",  en: "Cannot; to be unable to.",                            cat: "Grammar" },
+    { kr: "한~.",          en: "About; approximately (used before a quantity).",       cat: "Grammar" },
+    { kr: "~로.",          en: "By means of.",                                        cat: "Grammar" },
+  ],
+  "3.9 C": [
+    { kr: "~것.",          en: "A thing; an object.",                                  cat: "Grammar" },
+    { kr: "~과.",          en: "And (noun connector, after consonant).",               cat: "Grammar" },
+    { kr: "~와.",          en: "And (noun connector, after vowel).",                   cat: "Grammar" },
+    { kr: "노래.",         en: "A song.",                                              cat: "Vocabulary" },
+    { kr: "노래하다.",     en: "To sing.",                                             cat: "Vocabulary" },
+    { kr: "노래 부르다.",  en: "To sing a song (more natural spoken form).",           cat: "Vocabulary" },
+    { kr: "머무르다.",     en: "To stay; to lodge.",                                   cat: "Vocabulary" },
+    { kr: "머물다.",       en: "To stay; to lodge.",                                   cat: "Vocabulary" },
+    { kr: "초대.",         en: "An invitation.",                                       cat: "Vocabulary" },
+    { kr: "초대하다.",     en: "To invite.",                                           cat: "Vocabulary" },
+    { kr: "잔치.",         en: "A feast; a party; a banquet.",                         cat: "Vocabulary" },
+    { kr: "친척.",         en: "A relative.",                                          cat: "Vocabulary" },
+    { kr: "환갑.",         en: "The 60th birthday (還甲).",                           cat: "Vocabulary" },
+    { kr: "회갑.",         en: "The 60th birthday (回甲).",                           cat: "Vocabulary" },
+    { kr: "아마.",         en: "Probably; maybe; perhaps.",                            cat: "Vocabulary" },
+    { kr: "-으면.",        en: "If; in case; when (consonant-ending stem; vowel-ending drops 으 → -면).", cat: "Grammar" },
+    { kr: "~이랑.",        en: "With; and (after consonant).",                        cat: "Grammar" },
+    { kr: "~랑.",          en: "With; and (after vowel).",                            cat: "Grammar" },
+  ],
 };
 
 // Tag every phrase with its source list name (__list) so any flattened
@@ -1253,7 +1381,7 @@ let recordedChunks    = [];
 let isRecording       = false;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
-const PUNCT = new Set(['.', '?', '!', ',', '·', '~', '+', '-', '/']);
+const PUNCT = new Set(['.', '?', '!', ',', '·', '~', '+', '-', '/', '#']);
 
 function isHangulSyllable(ch) {
   const c = ch.codePointAt(0);
@@ -1308,43 +1436,59 @@ function renderListSelector() {
   if (!container) return;
   label.textContent = mode === 'study' ? 'Lists' : mode === 'quiz' ? 'Quiz list' : 'Practice list';
 
-  // Group list names by chapter (first 3 chars, e.g. "1.1", "2.7")
   const chapters = {};
   Object.keys(LISTS).forEach(name => {
-    const chapter = name.slice(0, 3); // "1.1", "2.5", etc.
+    const chapter = name.slice(0, 3);
     if (!chapters[chapter]) chapters[chapter] = [];
     chapters[chapter].push(name);
   });
 
-  container.innerHTML = Object.entries(chapters).map(([chapter, names]) => {
-    const anySelected = names.some(n => selectedLists.has(n));
-    const isOpen      = openChapters.has(chapter);
-    const dot         = anySelected ? `<span class="chapter-active-dot"></span>` : '';
-    return `
-      <div class="chapter-group">
-        <div class="chapter-header" onclick="toggleChapter('${chapter}')">
-          <div class="chapter-header-left">
-            ${dot}
-            <span>Chapter ${chapter}</span>
-          </div>
-          <span class="chapter-header-arrow ${isOpen ? 'open' : ''}">▶</span>
-        </div>
-        <div class="chapter-chips ${isOpen ? 'open' : ''}">
-          ${names.map(name => {
-            const isSel = selectedLists.has(name);
-            const letter = name.slice(4); // "A", "B", "C"
-            return `<button class="list-chip ${isSel ? 'selected' : ''}"
-              onclick="toggleList('${name}')">${letter}</button>`;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  }).join('');
+  const chapterKeys   = Object.keys(chapters);
+  const activeChapter = [...openChapters].find(c => chapters[c]) || null;
+
+  // Each chapter gets its own row: [tab] [A] [B] [C] (chips only on active row)
+  container.innerHTML = '<div class="chapter-tab-strip">' +
+    chapterKeys.map(chapter => {
+      const anySelected = chapters[chapter].some(n => selectedLists.has(n));
+      const isActive    = chapter === activeChapter;
+      const dot         = anySelected ? '<span class="tab-dot"></span>' : '';
+      const tabBtn      = '<button class="chapter-tab ' + (isActive ? 'active' : '') +
+        '" onclick="toggleChapter(\'' + chapter + '\')">' + chapter + dot + '</button>';
+      const chips       = isActive
+        ? '<div class="chapter-chip-picker">' +
+          chapters[chapter].map(name => {
+            const isSel  = selectedLists.has(name);
+            const letter = name.slice(4);
+            return '<button class="list-chip ' + (isSel ? 'selected' : '') +
+              '" onclick="toggleList(\'' + name + '\')">' + letter + '</button>';
+          }).join('') + '</div>'
+        : '';
+      return '<div class="chapter-row">' + tabBtn + chips + '</div>';
+    }).join('') +
+  '</div>';
+
+  renderSelectedChipsBar();
+}
+
+function renderSelectedChipsBar() {
+  const bar = document.getElementById('selectedChipsBar');
+  if (!bar) return;
+  const selected = [...selectedLists];
+  if (selected.length === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = selected.map(name =>
+    `<span class="selected-chip">${name}</span>`
+  ).join('') + `<button class="clear-lists-btn" onclick="clearAllLists()" title="Clear all">✕</button>`;
 }
 
 function toggleChapter(chapter) {
-  if (openChapters.has(chapter)) openChapters.delete(chapter);
-  else openChapters.add(chapter);
+  // Tapping the active chapter collapses it; tapping another opens it
+  if (openChapters.has(chapter)) {
+    openChapters.clear();
+  } else {
+    openChapters.clear();
+    openChapters.add(chapter);
+  }
   renderListSelector();
 }
 
@@ -1357,6 +1501,15 @@ function toggleList(name) {
   else startPronounce();
 }
 
+function clearAllLists() {
+  selectedLists.clear();
+  openChapters.clear();
+  renderListSelector();
+  if (mode === 'study') renderStudy();
+  else if (mode === 'quiz') startQuiz();
+  else if (mode === 'pronounce') startPronounce();
+}
+
 // ── MODE SWITCH ───────────────────────────────────────────────────────────
 function switchMode(m) {
   mode = m;
@@ -1367,9 +1520,9 @@ function switchMode(m) {
   document.getElementById('tabStories').classList.toggle('active', m === 'stories');
   document.getElementById('scoreDisplay').textContent = '';
 
-  // Review and Stories hide the list selector since they operate globally
-  const selectorWrap = document.querySelector('.selector-wrap');
-  if (selectorWrap) selectorWrap.style.display = (m === 'review' || m === 'stories') ? 'none' : '';
+  // Review and Stories hide the sidebar since they operate globally
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.style.display = (m === 'review' || m === 'stories') ? 'none' : '';
 
   if (m === 'study')    { renderListSelector(); renderStudy(); }
   else if (m === 'quiz')     { renderListSelector(); startQuiz(); }
@@ -3095,6 +3248,14 @@ document.addEventListener('DOMContentLoaded', () => {
   renderListSelector();
   renderStudy();
   refreshReviewBadge();
+
+  // Collapse the chip picker when user taps/clicks anywhere in the content column
+  document.getElementById('contentCol')?.addEventListener('click', () => {
+    if (openChapters.size > 0) {
+      openChapters.clear();
+      renderListSelector();
+    }
+  });
 });
 </script>
 </body>
