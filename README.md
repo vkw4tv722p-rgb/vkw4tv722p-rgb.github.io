@@ -191,6 +191,16 @@
   }
   .clear-lists-btn:hover { border-color: var(--red-stamp); color: var(--red-stamp); }
 
+  .typo-btn {
+    display: inline-block; margin-left: 8px;
+    padding: 3px 10px; border-radius: 10px;
+    border: 1.5px solid var(--muted-2); background: none;
+    font-family: 'Quicksand', sans-serif; font-size: 11px; font-weight: 700;
+    color: var(--muted); cursor: pointer; vertical-align: middle;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .typo-btn:hover { border-color: var(--blue-ink); color: var(--blue-ink); }
+
   /* List chips inside picker */
   .list-chip {
     padding: 5px 12px; border-radius: 16px;
@@ -1530,6 +1540,7 @@ let currentPhrase = null;
 let composingChar = '';
 let submittedWrong   = false;
 let submissionLocked = false; // true during the advance delay after a correct answer
+let srsRecordedThisQuestion = false; // true once SRS has been written for this question
 
 // ── STORIES STATE ─────────────────────────────────────────────────────────
 let currentStoryKey  = null;   // key into STORIES
@@ -1601,6 +1612,7 @@ function resetInputState(phrase) {
   committedSyls    = [];
   isComposing      = false;
   submissionLocked = false;
+  srsRecordedThisQuestion = false;
   lockedSyls       = getSyllables(phrase.kr).map(() => null);
 }
 
@@ -1900,7 +1912,10 @@ function submitAnswer() {
     const isFirst = currentRoundKeys.has(phrase.kr);
     phraseStatus.set(phrase.kr, { phrase, status: isFirst ? 'first' : 'corrected' });
     currentRoundKeys.delete(phrase.kr);
-    if (isFirst) recordSrsAttempt(phrase.kr, true);
+    if (isFirst && !srsRecordedThisQuestion) {
+      srsRecordedThisQuestion = true;
+      recordSrsAttempt(phrase.kr, true);
+    }
     document.getElementById('scoreDisplay').textContent = `★ ${quizScore}`;
 
     // Lock out further submissions during the advance delay without
@@ -1919,14 +1934,28 @@ function submitAnswer() {
     lockedSyls = newLocked;
     updateBlocks(typedSyls, 'wrong');
     const fb = document.getElementById('feedbackLine');
-    if (fb) { fb.textContent = '✗ 다시 해 보세요.'; fb.className = 'feedback wrong'; fb.dataset.state = 'wrong'; }
-    // Mark as missed and remove from currentRoundKeys so a subsequent correct answer knows it was attempted this round
     const wasFirstAttempt = currentRoundKeys.has(phrase.kr);
     currentRoundKeys.delete(phrase.kr);
     phraseStatus.set(phrase.kr, { phrase, status: 'missed' });
-    // Only the FIRST wrong attempt on this question counts toward SRS —
-    // subsequent wrong retries on the same question don't further penalize.
-    if (wasFirstAttempt) recordSrsAttempt(phrase.kr, false);
+
+    // Show feedback with an "I knew that" escape hatch for genuine typos.
+    // SRS penalty is deferred — fires when they retry unless they tap the button.
+    if (fb) {
+      fb.innerHTML = `<span class="feedback wrong" style="display:inline">✗ 다시 해 보세요.</span>` +
+        (wasFirstAttempt && !srsRecordedThisQuestion
+          ? ` <button class="typo-btn" onclick="markAsTypo('${phrase.kr.replace(/'/g,"\\'")}')">Typo — I knew that</button>`
+          : '');
+      fb.className = '';
+    }
+
+    // Record SRS miss now if this is the first wrong attempt and we haven't
+    // already recorded for this question. The "I knew that" button will undo
+    // this by re-recording as a neutral (no box change) if tapped.
+    if (wasFirstAttempt && !srsRecordedThisQuestion) {
+      srsRecordedThisQuestion = true;
+      recordSrsAttempt(phrase.kr, false);
+    }
+
     setTimeout(() => {
       input.value   = '';
       committedSyls = [];
@@ -2278,6 +2307,39 @@ async function recordSrsAttempt(kr, wasCorrect) {
     tx.oncomplete = () => resolve(record);
     tx.onerror    = () => resolve(record);
   });
+}
+
+// Called when the user taps "Typo — I knew that" after a wrong answer.
+// Undoes the box-0 penalty by restoring the box to what it was before
+// the wrong answer was recorded (i.e. adds 1 back, since the wrong
+// answer set it to 0). Does not increment timesCorrect since they
+// didn't actually spell it correctly.
+async function markAsTypo(kr) {
+  const db = await openSrsDb();
+  if (!db) return;
+  const existing = await getSrsRecord(kr);
+
+  const record = { ...existing };
+  // Undo the box drop: restore to previous box (min 1, so it still
+  // gets a short wait rather than being immediately due again)
+  record.box = Math.max(1, (record.box || 0) + 1);
+  record.timesWrong = Math.max(0, (record.timesWrong || 1) - 1); // un-count the wrong
+  const now = new Date();
+  record.lastSeen = now.toISOString();
+  const gapDays = SRS_BOX_GAPS_DAYS[record.box];
+  const due = new Date(now.getTime() + gapDays * 24 * 60 * 60 * 1000);
+  record.nextDue = due.toISOString();
+
+  await new Promise((resolve) => {
+    const tx = db.transaction(SRS_STORE, 'readwrite');
+    tx.objectStore(SRS_STORE).put(record, kr);
+    tx.oncomplete = () => resolve();
+    tx.onerror    = () => resolve();
+  });
+
+  // Update feedback line to confirm the typo was noted
+  const fb = document.getElementById('feedbackLine');
+  if (fb) fb.innerHTML = '<span class="feedback wrong" style="display:inline">✗ Marked as typo — box kept.</span>';
 }
 
 // Returns the list of phrases (from the given full phrase pool) that are
