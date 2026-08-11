@@ -201,6 +201,16 @@
   }
   .typo-btn:hover { border-color: var(--blue-ink); color: var(--blue-ink); }
 
+  .hanja-display {
+    font-size: 13px; color: var(--muted); margin-left: 6px;
+    font-family: 'Noto Sans KR', sans-serif; letter-spacing: 1px;
+    vertical-align: middle;
+  }
+  .hanja-en-display {
+    font-family: 'Quicksand', sans-serif; font-size: 11px;
+    color: var(--muted-2); letter-spacing: 0.3px;
+  }
+
   /* List chips inside picker */
   .list-chip {
     padding: 5px 12px; border-radius: 16px;
@@ -460,6 +470,12 @@
   .settings-toggle-btn.active-on  { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
   .settings-toggle-btn.active-off { border-color: var(--red-stamp); background: var(--red-light); color: var(--red-stamp); }
   .settings-toggle-btn.active-auto { border-color: var(--blue-ink); background: var(--blue-light); color: var(--blue-ink); }
+  .settings-toggle-btn.active-enabled { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .settings-section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted-2);
+    margin-bottom: 8px;
+  }
 
   /* ── STORIES MODE ── */
   .story-selector-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -551,9 +567,33 @@
   <div id="settingsOverlay" class="settings-overlay" style="display:none" onclick="closeSettingsPanel(event)">
     <div class="settings-panel" onclick="event.stopPropagation()">
       <div class="settings-panel-header">
-        <span>Review eligibility</span>
+        <span>Settings</span>
         <button class="ghost-btn" onclick="closeSettingsPanel()">Close</button>
       </div>
+
+      <!-- Hanja toggle -->
+      <div class="settings-section-label">Display</div>
+      <div class="settings-list-row">
+        <div>
+          <div class="settings-list-name">Show Hanja (漢字)</div>
+          <div class="settings-list-status">Display Chinese character roots alongside vocab where available</div>
+        </div>
+        <div class="settings-toggle-group">
+          <button class="settings-toggle-btn" id="hanjaToggleBtn" onclick="toggleHanjaSetting()">Off</button>
+        </div>
+      </div>
+      <div class="settings-list-row">
+        <div>
+          <div class="settings-list-name">Show Hanja breakdown</div>
+          <div class="settings-list-status">Show character-by-character English translation (requires Hanja toggle)</div>
+        </div>
+        <div class="settings-toggle-group">
+          <button class="settings-toggle-btn" id="hanjaEnToggleBtn" onclick="toggleHanjaEnSetting()">Off</button>
+        </div>
+      </div>
+
+      <!-- Review eligibility -->
+      <div class="settings-section-label" style="margin-top:16px">Review eligibility</div>
       <div class="settings-panel-hint">
         Lists become eligible for the Review tab automatically once you finish a full Quiz round on them. Override any list manually below.
       </div>
@@ -1027,7 +1067,7 @@ const LISTS = {
   "2.6 B": [
     { kr: "-고 싶다.",     en: "Want to; wish to (first person — one's own desire).",   cat: "Grammar" },
     { kr: "-고 싶어하다.", en: "Want to; wish to (third person — someone else's desire).", cat: "Grammar" },
-    { kr: "못.",           en: "Unable to; cannot (used before a verb).",               cat: "Grammar", prefix: "못+" },
+    { kr: "못.",           en: "Unable to; cannot (used before a verb).",               cat: "Grammar", suffix: "+verb" },
     { kr: "취미.",         en: "A hobby.",                                              cat: "Vocabulary" },
     { kr: "골프.",         en: "Golf.",                                                 cat: "Sports" },
     { kr: "농구.",         en: "Basketball.",                                           cat: "Sports" },
@@ -1298,8 +1338,8 @@ const LISTS = {
     { kr: "초대하다.",     en: "To invite.",                                           cat: "Vocabulary" },
     { kr: "잔치.",         en: "A feast; a party; a banquet.",                         cat: "Vocabulary" },
     { kr: "친척.",         en: "A relative.",                                          cat: "Vocabulary" },
-    { kr: "환갑.",         en: "The 60th birthday (還甲).",                           cat: "Vocabulary" },
-    { kr: "회갑.",         en: "The 60th birthday (回甲).",                           cat: "Vocabulary" },
+    { kr: "환갑.",         en: "The 60th birthday.",                                   cat: "Vocabulary", hanja: "還甲" },
+    { kr: "회갑.",         en: "The 60th birthday.",                                   cat: "Vocabulary", hanja: "回甲" },
     { kr: "아마.",         en: "Probably; maybe; perhaps.",                            cat: "Vocabulary" },
     { kr: "-으면.",        en: "If; in case; when (consonant-ending stem; vowel-ending drops 으 → -면).", cat: "Grammar" },
     { kr: "~이랑.",        en: "With; and (after consonant).",                        cat: "Grammar" },
@@ -1395,24 +1435,24 @@ const LISTS = {
     { kr: "-을.",          en: "Attributive form for action verbs (future/prospective, consonant-ending stem; vowel-ending stem → -ㄹ).", cat: "Grammar" },
   ],
   "3.11 A": [
-    { kr: "교포.",         en: "A Korean living abroad.",                              cat: "Vocabulary" },
-    { kr: "사회.",         en: "A community; a society.",                              cat: "Vocabulary" },
+    { kr: "교포.",         en: "A Korean living abroad.",                              cat: "Vocabulary", hanja: "僑胞", hanjaEn: "sojourner + compatriot" },
+    { kr: "사회.",         en: "A community; a society.",                              cat: "Vocabulary", hanja: "社會", hanjaEn: "society + gather" },
     { kr: "~세.",          en: "A generation (short form).",                           cat: "Grammar" },
-    { kr: "~세대.",        en: "A generation (fuller form).",                          cat: "Grammar" },
-    { kr: "근무.",         en: "Duty; work; service.",                                 cat: "Vocabulary" },
-    { kr: "근무하다.",     en: "To be on duty; to work; to serve.",                    cat: "Vocabulary" },
+    { kr: "~세대.",        en: "A generation (fuller form).",                          cat: "Grammar",   hanja: "世代", hanjaEn: "generation + era" },
+    { kr: "근무.",         en: "Duty; work; service.",                                 cat: "Vocabulary", hanja: "勤務", hanjaEn: "diligent + duty" },
+    { kr: "근무하다.",     en: "To be on duty; to work; to serve.",                    cat: "Vocabulary", hanja: "勤務", hanjaEn: "diligent + duty" },
     { kr: "다니다.",       en: "To go habitually to a place; to attend; to work.",     cat: "Vocabulary" },
-    { kr: "사업.",         en: "A business.",                                          cat: "Vocabulary" },
-    { kr: "사업하다.",     en: "To do business.",                                      cat: "Vocabulary" },
+    { kr: "사업.",         en: "A business.",                                          cat: "Vocabulary", hanja: "事業", hanjaEn: "affair + work" },
+    { kr: "사업하다.",     en: "To do business.",                                      cat: "Vocabulary", hanja: "事業", hanjaEn: "affair + work" },
     { kr: "어리다.",       en: "To be young; to be immature.",                         cat: "Descriptors" },
-    { kr: "이민.",         en: "Immigration; emigration; expatriation.",               cat: "Vocabulary" },
-    { kr: "인구.",         en: "Population.",                                          cat: "Vocabulary" },
+    { kr: "이민.",         en: "Immigration; emigration; expatriation.",               cat: "Vocabulary", hanja: "移民", hanjaEn: "move + people" },
+    { kr: "인구.",         en: "Population.",                                          cat: "Vocabulary", hanja: "人口", hanjaEn: "person + mouth" },
     { kr: "한글.",         en: "Hangul; the Korean alphabet; \"Korean writing\".",     cat: "Vocabulary" },
-    { kr: "한인.",         en: "A Korean expatriate; a Korean living abroad.",         cat: "Vocabulary" },
-    { kr: "유학생.",       en: "An international student; a foreign student.",         cat: "Vocabulary" },
-    { kr: "만.",           en: "Ten thousand.",                                        cat: "Vocabulary" },
-    { kr: "억.",           en: "Hundred million.",                                     cat: "Vocabulary" },
-    { kr: "대부분.",       en: "Most; almost; \"large part\".",                        cat: "Vocabulary" },
+    { kr: "한인.",         en: "A Korean expatriate; a Korean living abroad.",         cat: "Vocabulary", hanja: "韓人", hanjaEn: "Korea + person" },
+    { kr: "유학생.",       en: "An international student; a foreign student.",         cat: "Vocabulary", hanja: "留學生", hanjaEn: "stay + study + student" },
+    { kr: "만.",           en: "Ten thousand.",                                        cat: "Vocabulary", hanja: "萬", hanjaEn: "ten thousand" },
+    { kr: "억.",           en: "Hundred million.",                                     cat: "Vocabulary", hanja: "億", hanjaEn: "hundred million" },
+    { kr: "대부분.",       en: "Most; almost; \"large part\".",                        cat: "Vocabulary", hanja: "大部分", hanjaEn: "big + part + portion" },
     { kr: "정말.",         en: "Really; truly.",                                       cat: "Vocabulary" },
     { kr: "~곳.",          en: "A place.",                                             cat: "Grammar" },
     { kr: "-을 때.",       en: "When; at the time of (consonant-ending stem; vowel-ending drops 으 → -ㄹ 때).", cat: "Grammar" },
@@ -1422,31 +1462,31 @@ const LISTS = {
     { kr: "깨끗하다.",     en: "To be clean.",                                         cat: "Descriptors" },
     { kr: "더럽다.",       en: "To be dirty.",                                         cat: "Descriptors" },
     { kr: "다르다.",       en: "To be different.",                                     cat: "Descriptors" },
-    { kr: "이용.",         en: "Use.",                                                 cat: "Vocabulary" },
-    { kr: "이용하다.",     en: "To use; to utilize.",                                  cat: "Vocabulary" },
-    { kr: "필요하다.",     en: "To be needed; to be necessary.",                       cat: "Descriptors" },
+    { kr: "이용.",         en: "Use.",                                                 cat: "Vocabulary", hanja: "利用", hanjaEn: "benefit + use" },
+    { kr: "이용하다.",     en: "To use; to utilize.",                                  cat: "Vocabulary", hanja: "利用", hanjaEn: "benefit + use" },
+    { kr: "필요하다.",     en: "To be needed; to be necessary.",                       cat: "Descriptors", hanja: "必要", hanjaEn: "must + need" },
     { kr: "돕다.",         en: "To help.",                                             cat: "Vocabulary" },
     { kr: "묵다.",         en: "To stay; to lodge.",                                   cat: "Vocabulary" },
     { kr: "비다.",         en: "To be empty; to be vacant.",                           cat: "Descriptors" },
     { kr: "시끄럽다.",     en: "To be noisy; to be loud.",                             cat: "Descriptors" },
     { kr: "옮기다.",       en: "To move; to transfer.",                                cat: "Vocabulary" },
-    { kr: "무료.",         en: "Free of charge.",                                      cat: "Vocabulary" },
-    { kr: "숙박비.",       en: "Lodging fee.",                                         cat: "Vocabulary" },
-    { kr: "비상구.",       en: "An emergency exit.",                                   cat: "Vocabulary" },
+    { kr: "무료.",         en: "Free of charge.",                                      cat: "Vocabulary", hanja: "無料", hanjaEn: "none + fee" },
+    { kr: "숙박비.",       en: "Lodging fee.",                                         cat: "Vocabulary", hanja: "宿泊費", hanjaEn: "lodge + stay + fee" },
+    { kr: "비상구.",       en: "An emergency exit.",                                   cat: "Vocabulary", hanja: "非常口", hanjaEn: "not + normal + mouth" },
     { kr: "서비스.",       en: "Service.",                                             cat: "Vocabulary" },
     { kr: "수건.",         en: "A towel.",                                             cat: "Vocabulary" },
-    { kr: "수영장.",       en: "A swimming pool.",                                     cat: "Vocabulary" },
-    { kr: "욕실.",         en: "A bathroom.",                                          cat: "Vocabulary" },
-    { kr: "일반실.",       en: "A standard room.",                                     cat: "Vocabulary" },
+    { kr: "수영장.",       en: "A swimming pool.",                                     cat: "Vocabulary", hanja: "水泳場", hanjaEn: "water + swim + place" },
+    { kr: "욕실.",         en: "A bathroom.",                                          cat: "Vocabulary", hanja: "浴室", hanjaEn: "bath + room" },
+    { kr: "일반실.",       en: "A standard room.",                                     cat: "Vocabulary", hanja: "一般室", hanjaEn: "one + general + room" },
     { kr: "스위트룸.",     en: "A suite (in a hotel).",                                cat: "Vocabulary" },
     { kr: "체크아웃.",     en: "Checkout.",                                            cat: "Vocabulary" },
     { kr: "체크아웃하다.", en: "To check out.",                                        cat: "Vocabulary" },
     { kr: "체크인.",       en: "Check-in.",                                            cat: "Vocabulary" },
     { kr: "체크인하다.",   en: "To check in.",                                         cat: "Vocabulary" },
     { kr: "프런트 데스크.",en: "The front desk; the reception desk.",                  cat: "Vocabulary" },
-    { kr: "할인.",         en: "A discount.",                                          cat: "Vocabulary" },
-    { kr: "할인하다.",     en: "To discount.",                                         cat: "Vocabulary" },
-    { kr: "할인 받다.",    en: "To get a discount.",                                   cat: "Vocabulary" },
+    { kr: "할인.",         en: "A discount.",                                          cat: "Vocabulary", hanja: "割引", hanjaEn: "cut + reduce" },
+    { kr: "할인하다.",     en: "To discount.",                                         cat: "Vocabulary", hanja: "割引", hanjaEn: "cut + reduce" },
+    { kr: "할인 받다.",    en: "To get a discount.",                                   cat: "Vocabulary", hanja: "割引", hanjaEn: "cut + reduce" },
     { kr: "~호.",          en: "Room/house number (e.g. 203호 = room 203).",           cat: "Grammar" },
     { kr: "호텔.",         en: "A hotel.",                                             cat: "Vocabulary" },
     { kr: "달러.",         en: "Dollar.",                                              cat: "Vocabulary" },
@@ -1472,7 +1512,7 @@ const LISTS = {
     { kr: "포크.",         en: "A fork.",                                              cat: "Food" },
     { kr: "국.",           en: "Soup.",                                                cat: "Food" },
     { kr: "식혜.",         en: "Sweet Korean rice punch.",                             cat: "Food" },
-    { kr: "후식.",         en: "A dessert; \"after meal\".",                           cat: "Food" },
+    { kr: "후식.",         en: "A dessert.",                                           cat: "Food",       hanja: "後食", hanjaEn: "after + eat" },
     { kr: "별로.",         en: "Not particularly; not really.",                        cat: "Vocabulary" },
     { kr: "그렇지만.",     en: "But; however; nevertheless.",                          cat: "Vocabulary" },
     { kr: "천천히.",       en: "Slowly.",                                              cat: "Vocabulary" },
@@ -1552,6 +1592,10 @@ let maskPassWords    = new Map(); // sentence-index -> Set of word indices maske
 
 // Chapter selector state — tracks which chapter groups are expanded
 let openChapters = new Set(); // e.g. Set { "1.1", "2.7" }
+
+// Hanja display settings — persisted to localStorage
+let showHanja   = localStorage.getItem('showHanja')   === 'true';
+let showHanjaEn = localStorage.getItem('showHanjaEn') === 'true';
 
 // ── PRONOUNCE MODE STATE ─────────────────────────────────────────────────
 const PRONOUNCE_PROXY_URL = "https://korean-pronunciation-proxy.cgmn9jdtsh.workers.dev";
@@ -1735,7 +1779,7 @@ function renderStudy() {
         ${phrases.map(p => `
           <div class="study-row">
             <span class="study-kr">${p.kr}</span>
-            <span class="study-en">${p.en}</span>
+            <span class="study-en">${p.en}</span>${hanjaHTML(p)}
           </div>
         `).join('')}
       </div>
@@ -2073,7 +2117,7 @@ function renderQuiz(phrases) {
     <div class="category-label">${phrase.cat}</div>
 
     <div class="prompt-card">
-      <div class="meaning-text">${phrase.en}</div>
+      <div class="meaning-text">${phrase.en}${hanjaHTML(phrase)}</div>
     </div>
 
     <div class="blocks-area" id="blocksArea">
@@ -2081,6 +2125,7 @@ function renderQuiz(phrases) {
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       ${phrase.prefix ? `<div style="font-family:'Gowun Dodum',sans-serif;font-size:18px;color:var(--muted);margin-bottom:6px">${phrase.prefix}</div>` : ''}
       <div class="blocks-row">${blocksHTML}</div>
+      ${phrase.suffix ? `<div style="font-family:'Gowun Dodum',sans-serif;font-size:18px;color:var(--muted);margin-top:6px">${phrase.suffix}</div>` : ''}
       <div class="tap-hint" id="tapHint">tap to type</div>
     </div>
 
@@ -2145,7 +2190,7 @@ function renderEndScreen() {
         ${items.map(p => `
           <div class="breakdown-row">
             <span class="kr">${p.kr}</span>
-            <span class="en">${p.en}</span>
+            <span class="en">${p.en}</span>${hanjaHTML(p)}
           </div>
         `).join('')}
       </div>
@@ -2544,12 +2589,13 @@ function renderPronounce() {
     <div class="category-label">${phrase.cat}</div>
 
     <div class="prompt-card">
-      <div class="meaning-text">${phrase.en}</div>
+      <div class="meaning-text">${phrase.en}${hanjaHTML(phrase)}</div>
     </div>
 
     <div class="pronounce-card">
       ${phrase.prefix ? `<div style="font-family:'Gowun Dodum',sans-serif;font-size:18px;color:var(--muted);margin-bottom:6px;text-align:center">${phrase.prefix}</div>` : ''}
       <div class="blocks-row" id="pronounceBlocks" style="justify-content:center;margin-bottom:24px">${blocksHTML}</div>
+      ${phrase.suffix ? `<div style="font-family:'Gowun Dodum',sans-serif;font-size:18px;color:var(--muted);margin-top:-18px;margin-bottom:24px;text-align:center">${phrase.suffix}</div>` : ''}
 
       <div class="record-label" id="recordLabel">Tap to record</div>
       <button class="record-btn" id="recordBtn" onclick="toggleRecording()">🎙️</button>
@@ -2604,7 +2650,7 @@ function renderPronounceSummary() {
         ${items.map(r => `
           <div class="breakdown-row">
             <span class="kr">${r.phrase.kr}</span>
-            <span class="en">${r.phrase.en}</span>
+            <span class="en">${r.phrase.en}</span>${hanjaHTML(r.phrase)}
             ${withPlayButton ? `<button class="play-recording-btn" onclick="playSavedRecording('${r.phrase.kr.replace(/'/g, "\\'")}')" title="Play your recording">▶️</button>` : ''}
             <span class="mark" style="font-weight:700;color:${r.score === null ? 'var(--muted-2)' : scoreToColor(r.score)}">${r.score === null ? '—' : r.score}</span>
           </div>
@@ -2982,10 +3028,59 @@ function toggleTheme() {
   applyTheme();
 }
 
+// Returns Hanja display HTML if showHanja is on and the phrase has hanja data.
+// Optionally also shows the character-by-character English breakdown.
+function hanjaHTML(phrase) {
+  if (!showHanja || !phrase || !phrase.hanja) return '';
+  const enPart = (showHanjaEn && phrase.hanjaEn)
+    ? `<span class="hanja-en-display"> · ${phrase.hanjaEn}</span>`
+    : '';
+  return `<span class="hanja-display">${phrase.hanja}${enPart}</span>`;
+}
+
+function toggleHanjaSetting() {
+  showHanja = !showHanja;
+  localStorage.setItem('showHanja', showHanja);
+  const btn = document.getElementById('hanjaToggleBtn');
+  if (btn) {
+    btn.textContent = showHanja ? 'On' : 'Off';
+    btn.className   = 'settings-toggle-btn' + (showHanja ? ' active-enabled' : '');
+  }
+  refreshCurrentMode();
+}
+
+function toggleHanjaEnSetting() {
+  showHanjaEn = !showHanjaEn;
+  localStorage.setItem('showHanjaEn', showHanjaEn);
+  const btn = document.getElementById('hanjaEnToggleBtn');
+  if (btn) {
+    btn.textContent = showHanjaEn ? 'On' : 'Off';
+    btn.className   = 'settings-toggle-btn' + (showHanjaEn ? ' active-enabled' : '');
+  }
+  refreshCurrentMode();
+}
+
+function refreshCurrentMode() {
+  if (mode === 'study')          renderStudy();
+  else if (mode === 'quiz')      renderQuiz();
+  else if (mode === 'pronounce') renderPronounce();
+  else if (mode === 'review')    startReview();
+}
+
 // ── SETTINGS PANEL (Review eligibility overrides) ────────────────────────
 async function openSettingsPanel() {
   const overlay = document.getElementById('settingsOverlay');
   if (!overlay) return;
+  const hanjaBtn = document.getElementById('hanjaToggleBtn');
+  if (hanjaBtn) {
+    hanjaBtn.textContent = showHanja ? 'On' : 'Off';
+    hanjaBtn.className   = 'settings-toggle-btn' + (showHanja ? ' active-enabled' : '');
+  }
+  const hanjaEnBtn = document.getElementById('hanjaEnToggleBtn');
+  if (hanjaEnBtn) {
+    hanjaEnBtn.textContent = showHanjaEn ? 'On' : 'Off';
+    hanjaEnBtn.className   = 'settings-toggle-btn' + (showHanjaEn ? ' active-enabled' : '');
+  }
   await renderSettingsListRows();
   overlay.style.display = 'flex';
 }
