@@ -246,15 +246,26 @@
   .hidden-input { position: absolute; opacity: 0; width: 1px; height: 1px; top: 0; left: 0; pointer-events: none; font-size: 16px; }
 
   /* blocks-row uses flex with wrap; space and punct tokens sit inline.
-     row-gap is larger than column-gap to leave room for the absolutely
-     positioned per-syllable score label (used in Pronounce mode) sitting
-     just below each block — otherwise a wrapped second row of blocks
-     overlaps and hides that label. */
+     row-gap is larger than column-gap to leave room for the per-syllable
+     Hanja label above each block and score label below (Pronounce mode). */
   .blocks-row {
     display: flex; flex-wrap: wrap;
     column-gap: 6px; row-gap: 26px;
-    align-items: center; min-height: 68px;
+    align-items: flex-end; min-height: 68px;
   }
+
+  /* Wrapper that stacks Hanja label above the block */
+  .syl-block-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 3px; flex-shrink: 0;
+  }
+  .syl-hanja-label {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px; color: var(--muted);
+    line-height: 1; min-height: 18px;
+    text-align: center; user-select: none;
+  }
+  .syl-hanja-empty { min-height: 18px; }
 
   /* A space between words */
   .block-space { width: 14px; flex-shrink: 0; }
@@ -576,7 +587,7 @@
       <div class="settings-list-row">
         <div>
           <div class="settings-list-name">Show Hanja (漢字)</div>
-          <div class="settings-list-status">Display Chinese character roots alongside vocab where available</div>
+          <div class="settings-list-status">Display Chinese character roots beneath each syllable block</div>
         </div>
         <div class="settings-toggle-group">
           <button class="settings-toggle-btn" id="hanjaToggleBtn" onclick="toggleHanjaSetting()">Off</button>
@@ -585,7 +596,7 @@
       <div class="settings-list-row">
         <div>
           <div class="settings-list-name">Show Hanja breakdown</div>
-          <div class="settings-list-status">Show character-by-character English translation (requires Hanja toggle)</div>
+          <div class="settings-list-status">Show character-by-character English meaning in the gloss</div>
         </div>
         <div class="settings-toggle-group">
           <button class="settings-toggle-btn" id="hanjaEnToggleBtn" onclick="toggleHanjaEnSetting()">Off</button>
@@ -1338,23 +1349,23 @@ const LISTS = {
     { kr: "초대하다.",     en: "To invite.",                                           cat: "Vocabulary" },
     { kr: "잔치.",         en: "A feast; a party; a banquet.",                         cat: "Vocabulary" },
     { kr: "친척.",         en: "A relative.",                                          cat: "Vocabulary" },
-    { kr: "환갑.",         en: "The 60th birthday.",                                   cat: "Vocabulary", hanja: "還甲" },
-    { kr: "회갑.",         en: "The 60th birthday.",                                   cat: "Vocabulary", hanja: "回甲" },
+    { kr: "환갑.",         en: "The 60th birthday.",                                   cat: "Vocabulary", hanja: ["還","甲"] },
+    { kr: "회갑.",         en: "The 60th birthday.",                                   cat: "Vocabulary", hanja: ["回","甲"] },
     { kr: "아마.",         en: "Probably; maybe; perhaps.",                            cat: "Vocabulary" },
     { kr: "-으면.",        en: "If; in case; when (consonant-ending stem; vowel-ending drops 으 → -면).", cat: "Grammar" },
     { kr: "~이랑.",        en: "With; and (after consonant).",                        cat: "Grammar" },
     { kr: "~랑.",          en: "With; and (after vowel).",                            cat: "Grammar" },
   ],
   "3.10 A": [
-    { kr: "고속버스.",     en: "An express bus; \"high-speed bus\".",                  cat: "Transport" },
-    { kr: "공항.",         en: "An airport.",                                          cat: "Transport" },
-    { kr: "기차.",         en: "A train (everyday colloquial form).",                  cat: "Transport" },
-    { kr: "열차.",         en: "A train (formal/technical form; used in announcements and signage).", cat: "Transport" },
+    { kr: "고속버스.",     en: "An express bus; \"high-speed bus\".",                  cat: "Transport", hanja: ["高","速",null,null], hanjaEn: "high + speed + (bus)" },
+    { kr: "공항.",         en: "An airport.",                                          cat: "Transport", hanja: ["空","港"], hanjaEn: "sky + harbor" },
+    { kr: "기차.",         en: "A train (everyday colloquial form).",                  cat: "Transport", hanja: ["汽","車"], hanjaEn: "steam + vehicle" },
+    { kr: "열차.",         en: "A train (formal/technical form; used in announcements and signage).", cat: "Transport", hanja: ["列","車"], hanjaEn: "row + vehicle" },
     { kr: "렌터카.",       en: "A rental car.",                                        cat: "Transport" },
     { kr: "배.",           en: "A ship; a boat.",                                      cat: "Transport" },
     { kr: "버스.",         en: "A bus.",                                               cat: "Transport" },
-    { kr: "지하철.",       en: "A subway; \"underground steel\".",                     cat: "Transport" },
-    { kr: "정류장.",       en: "A bus stop; a taxi stop.",                             cat: "Transport" },
+    { kr: "지하철.",       en: "A subway; \"underground steel\".",                     cat: "Transport", hanja: ["地","下","鐵"], hanjaEn: "ground + below + iron" },
+    { kr: "정류장.",       en: "A bus stop; a taxi stop.",                             cat: "Transport", hanja: ["停","留","場"], hanjaEn: "stop + stay + place" },
     { kr: "터미널.",       en: "A terminal.",                                          cat: "Transport" },
     { kr: "역.",           en: "A train station; a subway station.",                   cat: "Transport" },
     { kr: "항구.",         en: "A harbor; a port.",                                    cat: "Transport" },
@@ -1364,9 +1375,9 @@ const LISTS = {
     { kr: "싸다.",         en: "To be cheap.",                                         cat: "Descriptors" },
     { kr: "비싸다.",       en: "To be expensive.",                                     cat: "Descriptors" },
     { kr: "빌리다.",       en: "To borrow; to rent.",                                  cat: "Vocabulary" },
-    { kr: "비용.",         en: "Expense; cost; expenditure.",                          cat: "Vocabulary" },
+    { kr: "비용.",         en: "Expense; cost; expenditure.",                          cat: "Vocabulary", hanja: ["費","用"], hanjaEn: "expense + use" },
     { kr: "들다.",         en: "To cost.",                                             cat: "Vocabulary" },
-    { kr: "불편하다.",     en: "To be uncomfortable; to be inconvenient.",             cat: "Descriptors" },
+    { kr: "불편하다.",     en: "To be uncomfortable; to be inconvenient.",             cat: "Descriptors", hanja: ["不","便",null,null], hanjaEn: "not + convenient" },
     { kr: "적게.",         en: "Few; little (adverb).",                                cat: "Vocabulary" },
     { kr: "적다.",         en: "To be few; to be little.",                             cat: "Descriptors" },
     { kr: "너무.",         en: "Too; too much.",                                       cat: "Vocabulary" },
@@ -1375,26 +1386,26 @@ const LISTS = {
     { kr: "가장.",         en: "The most; the -est (superlative marker).",             cat: "Grammar" },
   ],
   "3.10 B": [
-    { kr: "고속도로.",     en: "A highway; \"high-speed road\".",                      cat: "Transport" },
-    { kr: "공사 중.",      en: "Under construction; \"in the middle of construction\".", cat: "Vocabulary" },
-    { kr: "신호등.",       en: "A traffic signal light.",                              cat: "Vocabulary" },
-    { kr: "편의점.",       en: "A convenience store.",                                 cat: "Vocabulary" },
-    { kr: "입구.",         en: "An entrance; \"entering mouth\".",                     cat: "Vocabulary" },
-    { kr: "출구.",         en: "An exit; \"exiting mouth\".",                          cat: "Vocabulary" },
+    { kr: "고속도로.",     en: "A highway; \"high-speed road\".",                      cat: "Transport", hanja: ["高","速","道","路"], hanjaEn: "high + speed + road + path" },
+    { kr: "공사 중.",      en: "Under construction; \"in the middle of construction\".", cat: "Vocabulary", hanja: ["工","事","中"], hanjaEn: "work + matter + middle" },
+    { kr: "신호등.",       en: "A traffic signal light.",                              cat: "Vocabulary", hanja: ["信","號","燈"], hanjaEn: "signal + sign + lamp" },
+    { kr: "편의점.",       en: "A convenience store.",                                 cat: "Vocabulary", hanja: ["便","宜","店"], hanjaEn: "convenient + suitable + shop" },
+    { kr: "입구.",         en: "An entrance; \"entering mouth\".",                     cat: "Vocabulary", hanja: ["入","口"], hanjaEn: "enter + mouth" },
+    { kr: "출구.",         en: "An exit; \"exiting mouth\".",                          cat: "Vocabulary", hanja: ["出","口"], hanjaEn: "exit + mouth" },
     { kr: "값.",           en: "Price (everyday colloquial form).",                    cat: "Vocabulary" },
-    { kr: "가격.",         en: "Price (formal/written form).",                         cat: "Vocabulary" },
+    { kr: "가격.",         en: "Price (formal/written form).",                         cat: "Vocabulary", hanja: ["價","格"], hanjaEn: "price + standard" },
     { kr: "내다.",         en: "To pay (money).",                                      cat: "Vocabulary" },
     { kr: "갈아타다.",     en: "To transfer (means of transportation); \"change and ride\".", cat: "Vocabulary" },
     { kr: "떨어지다.",     en: "To run out of; to be out of.",                         cat: "Vocabulary" },
-    { kr: "복잡하다.",     en: "To be complicated; (of a road) to be congested.",      cat: "Descriptors" },
+    { kr: "복잡하다.",     en: "To be complicated; (of a road) to be congested.",      cat: "Descriptors", hanja: ["複","雜",null,null], hanjaEn: "multiple + mixed" },
     { kr: "세우다.",       en: "To stop; to park; to pull over.",                      cat: "Vocabulary" },
     { kr: "길을 잃다.",    en: "To be lost (in direction); \"lose a way\".",           cat: "Vocabulary" },
-    { kr: "조심.",         en: "Care; caution.",                                       cat: "Vocabulary" },
-    { kr: "조심하다.",     en: "To be careful; to be cautious.",                       cat: "Vocabulary" },
+    { kr: "조심.",         en: "Care; caution.",                                       cat: "Vocabulary", hanja: ["操","心"], hanjaEn: "hold + heart" },
+    { kr: "조심하다.",     en: "To be careful; to be cautious.",                       cat: "Vocabulary", hanja: ["操","心",null,null], hanjaEn: "hold + heart" },
     { kr: "오늘.",         en: "Today.",                                               cat: "Time" },
     { kr: "내일.",         en: "Tomorrow.",                                            cat: "Time" },
     { kr: "지금.",         en: "Now.",                                                 cat: "Time" },
-    { kr: "계속.",         en: "Continuously.",                                        cat: "Vocabulary" },
+    { kr: "계속.",         en: "Continuously.",                                        cat: "Vocabulary", hanja: ["繼","續"], hanjaEn: "continue + follow" },
     { kr: "혹시.",         en: "Perhaps; possibly; by any chance.",                    cat: "Vocabulary" },
     { kr: "-기 때문에.",   en: "Because (verb form; attaches to verb stem + 기).",     cat: "Grammar" },
     { kr: "~때문에.",      en: "Because of (noun form; attaches directly to noun).",   cat: "Grammar" },
@@ -1408,51 +1419,51 @@ const LISTS = {
     { kr: "모시고 오다.",  en: "To bring somebody (honorific).",                       cat: "Vocabulary" },
     { kr: "귀엽다.",       en: "To be cute.",                                          cat: "Descriptors" },
     { kr: "태어나다.",     en: "To be born.",                                          cat: "Vocabulary" },
-    { kr: "방문.",         en: "A visit.",                                             cat: "Vocabulary" },
-    { kr: "방문하다.",     en: "To visit.",                                            cat: "Vocabulary" },
+    { kr: "방문.",         en: "A visit.",                                             cat: "Vocabulary", hanja: ["訪","問"], hanjaEn: "visit + ask" },
+    { kr: "방문하다.",     en: "To visit.",                                            cat: "Vocabulary", hanja: ["訪","問",null,null], hanjaEn: "visit + ask" },
     { kr: "되다.",         en: "To become; to be.",                                    cat: "Vocabulary" },
-    { kr: "작년.",         en: "Last year.",                                           cat: "Time" },
+    { kr: "작년.",         en: "Last year.",                                           cat: "Time", hanja: ["昨","年"], hanjaEn: "past + year" },
     { kr: "올해.",         en: "This year (everyday colloquial form).",                cat: "Time" },
-    { kr: "금년.",         en: "This year (formal/written form).",                     cat: "Time" },
-    { kr: "내년.",         en: "Next year.",                                           cat: "Time" },
-    { kr: "외할머니.",     en: "Maternal grandmother.",                                cat: "Family" },
-    { kr: "외할아버지.",   en: "Maternal grandfather.",                                cat: "Family" },
-    { kr: "이모.",         en: "Mother's sister.",                                     cat: "Family" },
-    { kr: "이모부.",       en: "Husband of the mother's sister.",                      cat: "Family" },
+    { kr: "금년.",         en: "This year (formal/written form).",                     cat: "Time", hanja: ["今","年"], hanjaEn: "now + year" },
+    { kr: "내년.",         en: "Next year.",                                           cat: "Time", hanja: ["來","年"], hanjaEn: "come + year" },
+    { kr: "외할머니.",     en: "Maternal grandmother.",                                cat: "Family", hanja: ["外",null,null,null], hanjaEn: "maternal (outside)" },
+    { kr: "외할아버지.",   en: "Maternal grandfather.",                                cat: "Family", hanja: ["外",null,null,null,null], hanjaEn: "maternal (outside)" },
+    { kr: "이모.",         en: "Mother's sister.",                                     cat: "Family", hanja: ["姨","母"], hanjaEn: "aunt (maternal) + mother" },
+    { kr: "이모부.",       en: "Husband of the mother's sister.",                      cat: "Family", hanja: ["姨","母","夫"], hanjaEn: "aunt (maternal) + mother + husband" },
     { kr: "작은아버지.",   en: "Father's married younger brother; \"little father\".", cat: "Family" },
     { kr: "작은어머니.",   en: "Wife of the father's married younger brother; \"little mother\".", cat: "Family" },
     { kr: "조카.",         en: "A nephew; a niece; a sibling's child.",                cat: "Family" },
     { kr: "큰아버지.",     en: "Father's married older brother; \"big father\".",      cat: "Family" },
     { kr: "큰어머니.",     en: "Wife of the father's married older brother; \"big mother\".", cat: "Family" },
-    { kr: "고모.",         en: "Father's sister.",                                     cat: "Family" },
-    { kr: "고모부.",       en: "Husband of father's sister.",                          cat: "Family" },
+    { kr: "고모.",         en: "Father's sister.",                                     cat: "Family", hanja: ["姑","母"], hanjaEn: "father's sister + mother" },
+    { kr: "고모부.",       en: "Husband of father's sister.",                          cat: "Family", hanja: ["姑","母","夫"], hanjaEn: "father's sister + mother + husband" },
     { kr: "형수.",         en: "A man's older brother's wife.",                        cat: "Family" },
-    { kr: "외삼촌.",       en: "Mother's brother.",                                    cat: "Family" },
-    { kr: "사촌.",         en: "A cousin; \"fourth relationship\".",                   cat: "Family" },
+    { kr: "외삼촌.",       en: "Mother's brother.",                                    cat: "Family", hanja: ["外","三","寸"], hanjaEn: "maternal + three + degree" },
+    { kr: "사촌.",         en: "A cousin; \"fourth relationship\".",                   cat: "Family", hanja: ["四","寸"], hanjaEn: "four + degree" },
     { kr: "여러.",         en: "Various (types of); often used as 여러 가지.",         cat: "Vocabulary" },
     { kr: "-는.",          en: "Attributive form for action verbs (present tense).",   cat: "Grammar" },
     { kr: "-은.",          en: "Attributive form for action verbs (past tense, consonant-ending stem; vowel-ending stem → -ㄴ). Distinct from the stative verb form in 1.4 C.", cat: "Grammar" },
     { kr: "-을.",          en: "Attributive form for action verbs (future/prospective, consonant-ending stem; vowel-ending stem → -ㄹ).", cat: "Grammar" },
   ],
   "3.11 A": [
-    { kr: "교포.",         en: "A Korean living abroad.",                              cat: "Vocabulary", hanja: "僑胞", hanjaEn: "sojourner + compatriot" },
-    { kr: "사회.",         en: "A community; a society.",                              cat: "Vocabulary", hanja: "社會", hanjaEn: "society + gather" },
+    { kr: "교포.",         en: "A Korean living abroad.",                              cat: "Vocabulary", hanja: ["僑","胞"], hanjaEn: "sojourner + compatriot" },
+    { kr: "사회.",         en: "A community; a society.",                              cat: "Vocabulary", hanja: ["社","會"], hanjaEn: "society + gather" },
     { kr: "~세.",          en: "A generation (short form).",                           cat: "Grammar" },
-    { kr: "~세대.",        en: "A generation (fuller form).",                          cat: "Grammar",   hanja: "世代", hanjaEn: "generation + era" },
-    { kr: "근무.",         en: "Duty; work; service.",                                 cat: "Vocabulary", hanja: "勤務", hanjaEn: "diligent + duty" },
-    { kr: "근무하다.",     en: "To be on duty; to work; to serve.",                    cat: "Vocabulary", hanja: "勤務", hanjaEn: "diligent + duty" },
+    { kr: "~세대.",        en: "A generation (fuller form).",                          cat: "Grammar",   hanja: ["世","代"], hanjaEn: "generation + era" },
+    { kr: "근무.",         en: "Duty; work; service.",                                 cat: "Vocabulary", hanja: ["勤","務"], hanjaEn: "diligent + duty" },
+    { kr: "근무하다.",     en: "To be on duty; to work; to serve.",                    cat: "Vocabulary", hanja: ["勤","務",null,null], hanjaEn: "diligent + duty" },
     { kr: "다니다.",       en: "To go habitually to a place; to attend; to work.",     cat: "Vocabulary" },
-    { kr: "사업.",         en: "A business.",                                          cat: "Vocabulary", hanja: "事業", hanjaEn: "affair + work" },
-    { kr: "사업하다.",     en: "To do business.",                                      cat: "Vocabulary", hanja: "事業", hanjaEn: "affair + work" },
+    { kr: "사업.",         en: "A business.",                                          cat: "Vocabulary", hanja: ["事","業"], hanjaEn: "affair + work" },
+    { kr: "사업하다.",     en: "To do business.",                                      cat: "Vocabulary", hanja: ["事","業",null,null], hanjaEn: "affair + work" },
     { kr: "어리다.",       en: "To be young; to be immature.",                         cat: "Descriptors" },
-    { kr: "이민.",         en: "Immigration; emigration; expatriation.",               cat: "Vocabulary", hanja: "移民", hanjaEn: "move + people" },
-    { kr: "인구.",         en: "Population.",                                          cat: "Vocabulary", hanja: "人口", hanjaEn: "person + mouth" },
+    { kr: "이민.",         en: "Immigration; emigration; expatriation.",               cat: "Vocabulary", hanja: ["移","民"], hanjaEn: "move + people" },
+    { kr: "인구.",         en: "Population.",                                          cat: "Vocabulary", hanja: ["人","口"], hanjaEn: "person + mouth" },
     { kr: "한글.",         en: "Hangul; the Korean alphabet; \"Korean writing\".",     cat: "Vocabulary" },
-    { kr: "한인.",         en: "A Korean expatriate; a Korean living abroad.",         cat: "Vocabulary", hanja: "韓人", hanjaEn: "Korea + person" },
-    { kr: "유학생.",       en: "An international student; a foreign student.",         cat: "Vocabulary", hanja: "留學生", hanjaEn: "stay + study + student" },
-    { kr: "만.",           en: "Ten thousand.",                                        cat: "Vocabulary", hanja: "萬", hanjaEn: "ten thousand" },
-    { kr: "억.",           en: "Hundred million.",                                     cat: "Vocabulary", hanja: "億", hanjaEn: "hundred million" },
-    { kr: "대부분.",       en: "Most; almost; \"large part\".",                        cat: "Vocabulary", hanja: "大部分", hanjaEn: "big + part + portion" },
+    { kr: "한인.",         en: "A Korean expatriate; a Korean living abroad.",         cat: "Vocabulary", hanja: ["韓","人"], hanjaEn: "Korea + person" },
+    { kr: "유학생.",       en: "An international student; a foreign student.",         cat: "Vocabulary", hanja: ["留","學","生"], hanjaEn: "stay + study + student" },
+    { kr: "만.",           en: "Ten thousand.",                                        cat: "Vocabulary", hanja: ["萬"], hanjaEn: "ten thousand" },
+    { kr: "억.",           en: "Hundred million.",                                     cat: "Vocabulary", hanja: ["億"], hanjaEn: "hundred million" },
+    { kr: "대부분.",       en: "Most; almost; \"large part\".",                        cat: "Vocabulary", hanja: ["大","部","分"], hanjaEn: "big + part + portion" },
     { kr: "정말.",         en: "Really; truly.",                                       cat: "Vocabulary" },
     { kr: "~곳.",          en: "A place.",                                             cat: "Grammar" },
     { kr: "-을 때.",       en: "When; at the time of (consonant-ending stem; vowel-ending drops 으 → -ㄹ 때).", cat: "Grammar" },
@@ -1462,31 +1473,31 @@ const LISTS = {
     { kr: "깨끗하다.",     en: "To be clean.",                                         cat: "Descriptors" },
     { kr: "더럽다.",       en: "To be dirty.",                                         cat: "Descriptors" },
     { kr: "다르다.",       en: "To be different.",                                     cat: "Descriptors" },
-    { kr: "이용.",         en: "Use.",                                                 cat: "Vocabulary", hanja: "利用", hanjaEn: "benefit + use" },
-    { kr: "이용하다.",     en: "To use; to utilize.",                                  cat: "Vocabulary", hanja: "利用", hanjaEn: "benefit + use" },
-    { kr: "필요하다.",     en: "To be needed; to be necessary.",                       cat: "Descriptors", hanja: "必要", hanjaEn: "must + need" },
+    { kr: "이용.",         en: "Use.",                                                 cat: "Vocabulary", hanja: ["利","用"], hanjaEn: "benefit + use" },
+    { kr: "이용하다.",     en: "To use; to utilize.",                                  cat: "Vocabulary", hanja: ["利","用",null,null], hanjaEn: "benefit + use" },
+    { kr: "필요하다.",     en: "To be needed; to be necessary.",                       cat: "Descriptors", hanja: ["必","要",null,null], hanjaEn: "must + need" },
     { kr: "돕다.",         en: "To help.",                                             cat: "Vocabulary" },
     { kr: "묵다.",         en: "To stay; to lodge.",                                   cat: "Vocabulary" },
     { kr: "비다.",         en: "To be empty; to be vacant.",                           cat: "Descriptors" },
     { kr: "시끄럽다.",     en: "To be noisy; to be loud.",                             cat: "Descriptors" },
     { kr: "옮기다.",       en: "To move; to transfer.",                                cat: "Vocabulary" },
-    { kr: "무료.",         en: "Free of charge.",                                      cat: "Vocabulary", hanja: "無料", hanjaEn: "none + fee" },
-    { kr: "숙박비.",       en: "Lodging fee.",                                         cat: "Vocabulary", hanja: "宿泊費", hanjaEn: "lodge + stay + fee" },
-    { kr: "비상구.",       en: "An emergency exit.",                                   cat: "Vocabulary", hanja: "非常口", hanjaEn: "not + normal + mouth" },
+    { kr: "무료.",         en: "Free of charge.",                                      cat: "Vocabulary", hanja: ["無","料"], hanjaEn: "none + fee" },
+    { kr: "숙박비.",       en: "Lodging fee.",                                         cat: "Vocabulary", hanja: ["宿","泊","費"], hanjaEn: "lodge + stay + fee" },
+    { kr: "비상구.",       en: "An emergency exit.",                                   cat: "Vocabulary", hanja: ["非","常","口"], hanjaEn: "not + normal + mouth" },
     { kr: "서비스.",       en: "Service.",                                             cat: "Vocabulary" },
     { kr: "수건.",         en: "A towel.",                                             cat: "Vocabulary" },
-    { kr: "수영장.",       en: "A swimming pool.",                                     cat: "Vocabulary", hanja: "水泳場", hanjaEn: "water + swim + place" },
-    { kr: "욕실.",         en: "A bathroom.",                                          cat: "Vocabulary", hanja: "浴室", hanjaEn: "bath + room" },
-    { kr: "일반실.",       en: "A standard room.",                                     cat: "Vocabulary", hanja: "一般室", hanjaEn: "one + general + room" },
+    { kr: "수영장.",       en: "A swimming pool.",                                     cat: "Vocabulary", hanja: ["水","泳","場"], hanjaEn: "water + swim + place" },
+    { kr: "욕실.",         en: "A bathroom.",                                          cat: "Vocabulary", hanja: ["浴","室"], hanjaEn: "bath + room" },
+    { kr: "일반실.",       en: "A standard room.",                                     cat: "Vocabulary", hanja: ["一","般","室"], hanjaEn: "one + general + room" },
     { kr: "스위트룸.",     en: "A suite (in a hotel).",                                cat: "Vocabulary" },
     { kr: "체크아웃.",     en: "Checkout.",                                            cat: "Vocabulary" },
     { kr: "체크아웃하다.", en: "To check out.",                                        cat: "Vocabulary" },
     { kr: "체크인.",       en: "Check-in.",                                            cat: "Vocabulary" },
     { kr: "체크인하다.",   en: "To check in.",                                         cat: "Vocabulary" },
     { kr: "프런트 데스크.",en: "The front desk; the reception desk.",                  cat: "Vocabulary" },
-    { kr: "할인.",         en: "A discount.",                                          cat: "Vocabulary", hanja: "割引", hanjaEn: "cut + reduce" },
-    { kr: "할인하다.",     en: "To discount.",                                         cat: "Vocabulary", hanja: "割引", hanjaEn: "cut + reduce" },
-    { kr: "할인 받다.",    en: "To get a discount.",                                   cat: "Vocabulary", hanja: "割引", hanjaEn: "cut + reduce" },
+    { kr: "할인.",         en: "A discount.",                                          cat: "Vocabulary", hanja: ["割","引"], hanjaEn: "cut + reduce" },
+    { kr: "할인하다.",     en: "To discount.",                                         cat: "Vocabulary", hanja: ["割","引",null,null], hanjaEn: "cut + reduce" },
+    { kr: "할인 받다.",    en: "To get a discount.",                                   cat: "Vocabulary", hanja: ["割","引",null,null], hanjaEn: "cut + reduce" },
     { kr: "~호.",          en: "Room/house number (e.g. 203호 = room 203).",           cat: "Grammar" },
     { kr: "호텔.",         en: "A hotel.",                                             cat: "Vocabulary" },
     { kr: "달러.",         en: "Dollar.",                                              cat: "Vocabulary" },
@@ -1512,7 +1523,7 @@ const LISTS = {
     { kr: "포크.",         en: "A fork.",                                              cat: "Food" },
     { kr: "국.",           en: "Soup.",                                                cat: "Food" },
     { kr: "식혜.",         en: "Sweet Korean rice punch.",                             cat: "Food" },
-    { kr: "후식.",         en: "A dessert.",                                           cat: "Food",       hanja: "後食", hanjaEn: "after + eat" },
+    { kr: "후식.",         en: "A dessert.",                                           cat: "Food",       hanja: ["後","食"], hanjaEn: "after + eat" },
     { kr: "별로.",         en: "Not particularly; not really.",                        cat: "Vocabulary" },
     { kr: "그렇지만.",     en: "But; however; nevertheless.",                          cat: "Vocabulary" },
     { kr: "천천히.",       en: "Slowly.",                                              cat: "Vocabulary" },
@@ -1791,12 +1802,18 @@ function renderStudy() {
 // Builds the static HTML for the blocks row from a phrase string.
 // Returns { html, sylCount } — html has syl-block, block-space, block-punct elements.
 // syl-blocks are indexed by their syllable order (id="block-N").
-function buildBlocksHTML(kr) {
+// hanja: optional array (one entry per syllable) of Hanja char or null.
+function buildBlocksHTML(kr, hanja) {
   const tokens = tokenize(kr);
   let sylIdx = 0;
   const parts = tokens.map(tok => {
     if (tok.type === 'syl') {
-      return `<div class="syl-block empty" id="block-${sylIdx++}"></div>`;
+      const i = sylIdx++;
+      const hanjaChar = (showHanja && hanja && hanja[i]) ? hanja[i] : null;
+      const hanjaLabel = hanjaChar
+        ? `<div class="syl-hanja-label">${hanjaChar}</div>`
+        : (showHanja && hanja ? `<div class="syl-hanja-label syl-hanja-empty"></div>` : '');
+      return `<div class="syl-block-wrap">${hanjaLabel}<div class="syl-block empty" id="block-${i}"></div></div>`;
     } else if (tok.type === 'space') {
       return `<div class="block-space"></div>`;
     } else {
@@ -2103,7 +2120,7 @@ function renderQuiz(phrases) {
   resetInputState(phrase);
   submittedWrong     = false;
   const pct          = Math.round((quizIndex / quizQueue.length) * 100);
-  const { html: blocksHTML } = buildBlocksHTML(phrase.kr);
+  const { html: blocksHTML } = buildBlocksHTML(phrase.kr, phrase.hanja);
 
   document.getElementById('mainArea').innerHTML = `
     <div class="progress-wrap">
@@ -2575,7 +2592,7 @@ function nextPronounceWord() {
 
 function renderPronounce() {
   const phrase = pronouncePhrase;
-  const { html: blocksHTML } = buildBlocksHTML(phrase.kr);
+  const { html: blocksHTML } = buildBlocksHTML(phrase.kr, phrase.hanja);
   const pct = Math.round((pronounceQueuePos / pronounceQueue.length) * 100);
 
   document.getElementById('mainArea').innerHTML = `
@@ -3028,14 +3045,13 @@ function toggleTheme() {
   applyTheme();
 }
 
-// Returns Hanja display HTML if showHanja is on and the phrase has hanja data.
-// Optionally also shows the character-by-character English breakdown.
+// Returns Hanja gloss HTML — the English breakdown shown next to the English
+// translation. The Hanja characters themselves are now shown per-block in
+// buildBlocksHTML, so this only renders the breakdown text.
 function hanjaHTML(phrase) {
   if (!showHanja || !phrase || !phrase.hanja) return '';
-  const enPart = (showHanjaEn && phrase.hanjaEn)
-    ? `<span class="hanja-en-display"> · ${phrase.hanjaEn}</span>`
-    : '';
-  return `<span class="hanja-display">${phrase.hanja}${enPart}</span>`;
+  if (!showHanjaEn || !phrase.hanjaEn) return '';
+  return `<span class="hanja-en-display"> · ${phrase.hanjaEn}</span>`;
 }
 
 function toggleHanjaSetting() {
