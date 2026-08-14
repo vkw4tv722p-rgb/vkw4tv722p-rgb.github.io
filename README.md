@@ -191,6 +191,56 @@
   }
   .clear-lists-btn:hover { border-color: var(--red-stamp); color: var(--red-stamp); }
 
+  /* Vocab search */
+  .search-wrap {
+    position: relative; margin: 0 0 8px 0; width: 44px;
+  }
+  .vocab-search-input {
+    width: 100%; box-sizing: border-box;
+    padding: 6px 20px 6px 6px;
+    border: 1.5px solid var(--muted-2); border-radius: 10px;
+    background: var(--card-bg); color: var(--ink);
+    font-family: 'Quicksand', sans-serif; font-size: 10px; font-weight: 600;
+    outline: none; transition: border-color 0.15s;
+  }
+  .vocab-search-input:focus { border-color: var(--blue-ink); }
+  .vocab-search-input::placeholder { color: var(--muted-2); }
+  .search-clear-btn {
+    position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    font-size: 10px; color: var(--muted-2); padding: 2px; line-height: 1;
+  }
+  .search-clear-btn:hover { color: var(--ink); }
+  #searchResults {
+    position: absolute; left: 0; top: 100%; z-index: 100;
+    width: 220px;
+    border: 1.5px solid var(--muted-2); border-radius: 10px;
+    overflow: hidden; background: var(--card-bg);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+  .search-result-item {
+    padding: 7px 10px; cursor: pointer;
+    border-bottom: 1px solid var(--muted-2); transition: background 0.1s;
+  }
+  .search-result-item:last-child { border-bottom: none; }
+  .search-result-item:active { background: var(--blue-light); }
+  .search-result-kr {
+    font-family: 'Gowun Dodum', sans-serif; font-size: 13px; color: var(--ink);
+  }
+  .search-result-en {
+    font-family: 'Quicksand', sans-serif; font-size: 10px; color: var(--muted);
+    margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .search-result-list {
+    font-family: 'Quicksand', sans-serif; font-size: 9px; font-weight: 700;
+    color: var(--blue-ink); margin-top: 2px; letter-spacing: 0.3px;
+  }
+  .search-no-results {
+    padding: 10px; text-align: center;
+    font-family: 'Quicksand', sans-serif; font-size: 11px; color: var(--muted);
+  }
+
+  /* Vocab search */
   .typo-btn {
     display: inline-block; margin-left: 8px;
     padding: 3px 10px; border-radius: 10px;
@@ -625,6 +675,15 @@
     <!-- Left: chapter strip (hidden in Review/Stories) -->
     <div class="sidebar" id="sidebar">
       <div class="selector-label" id="selectorLabel">Lists</div>
+      <div class="search-wrap">
+        <input type="text" id="vocabSearch" class="vocab-search-input"
+               placeholder="🔍" autocomplete="off" autocorrect="off"
+               autocapitalize="off" spellcheck="false"
+               oninput="onVocabSearch(this.value)">
+        <button class="search-clear-btn" id="searchClearBtn"
+                style="display:none" onclick="clearVocabSearch()">✕</button>
+        <div id="searchResults" style="display:none"></div>
+      </div>
       <div id="listSelector"></div>
     </div>
 
@@ -641,9 +700,9 @@
 const LISTS = {
   "1.1 A": [
     { kr: "또 뵙겠습니다.",          en: "I'll see you again.",                    cat: "Expressions" },
-    { kr: "병장.",                   en: "Sergeant (E-5); \"chief soldier\".",      cat: "Military" },
-    { kr: "선생.",                   en: "A teacher.",                             cat: "Vocabulary" },
-    { kr: "선생님.",                  en: "A teacher.",                             cat: "Vocabulary" },
+    { kr: "병장.",                   en: "Sergeant (E-5); \"chief soldier\".",      cat: "Military", hanja: ["兵","長"], hanjaEn: "soldier + chief" },
+    { kr: "선생.",                   en: "A teacher.",                             cat: "Vocabulary", hanja: ["先","生"], hanjaEn: "before + born" },
+    { kr: "선생님.",                  en: "A teacher.",                             cat: "Vocabulary", hanja: ["先","生",null], hanjaEn: "before + born" },
     { kr: "안녕하세요.",              en: "Hello. Hi. How are you?",                cat: "Expressions" },
     { kr: "안녕하십니까?",            en: "Hello. Hi. How are you?",                cat: "Expressions" },
     { kr: "안녕히 가세요.",           en: "Good-bye. \"Go in peace.\"",             cat: "Expressions" },
@@ -656,7 +715,7 @@ const LISTS = {
   ],
   "1.1 B": [
     { kr: "고맙습니다.",              en: "Thank you (pure Korean).",               cat: "Expressions" },
-    { kr: "감사합니다.",              en: "Thank you (Sino).",                      cat: "Expressions" },
+    { kr: "감사합니다.",              en: "Thank you (Sino).",                      cat: "Expressions", hanja: ["感","謝",null,null,null], hanjaEn: "feel + apologize" },
     { kr: "네.",                     en: "Yes.",                                   cat: "Expressions" },
     { kr: "예.",                     en: "Yes (informal).",                        cat: "Expressions" },
     { kr: "아니요.",                  en: "No.",                                    cat: "Expressions" },
@@ -670,69 +729,69 @@ const LISTS = {
     { kr: "고향.",                   en: "Hometown.",                              cat: "Vocabulary" },
     { kr: "이름.",                   en: "Name.",                                  cat: "Vocabulary" },
     { kr: "성함.",                   en: "Name (honorific).",                      cat: "Vocabulary" },
-    { kr: "공군.",                   en: "Air Force.",                             cat: "Vocabulary" },
+    { kr: "공군.",                   en: "Air Force.",                             cat: "Vocabulary", hanja: ["空","軍"], hanjaEn: "sky + military" },
     { kr: "어디.",                   en: "Where.",                                 cat: "Vocabulary" },
     { kr: "캘리포니아.",              en: "California.",                            cat: "Vocabulary" },
     { kr: "제.",                     en: "I / my (humble).",                       cat: "Vocabulary" },
     { kr: "내.",                     en: "I / my (informal).",                     cat: "Vocabulary" },
   ],
   "1.1 C": [
-    { kr: "계급.",                   en: "A (military) rank.",                            cat: "Military" },
-    { kr: "신병.",                   en: "Private (E-1); \"new soldier\".",               cat: "Military" },
-    { kr: "이병.",                   en: "Private (E-2); \"second soldier\".",            cat: "Military" },
-    { kr: "일병.",                   en: "Private (E-3); \"first soldier\".",             cat: "Military" },
-    { kr: "상병.",                   en: "Specialist (E-4); \"top soldier\".",            cat: "Military" },
-    { kr: "병장.",                   en: "Sergeant (E-5).",                              cat: "Military" },
-    { kr: "하사.",                   en: "Staff Sergeant (E-6); \"bottom sergeant\".",    cat: "Military" },
-    { kr: "중사.",                   en: "Sergeant First Class (E-7); \"middle sergeant\".", cat: "Military" },
-    { kr: "상사.",                   en: "Master Sergeant (E-8); \"top sergeant\".",      cat: "Military" },
-    { kr: "원사.",                   en: "Sergeant Major (E-9); \"foremost sergeant\".",  cat: "Military" },
-    { kr: "군인.",                   en: "A serviceman.",                               cat: "Military" },
+    { kr: "계급.",                   en: "A (military) rank.",                            cat: "Military", hanja: ["階","級"], hanjaEn: "step + rank" },
+    { kr: "신병.",                   en: "Private (E-1); \"new soldier\".",               cat: "Military", hanja: ["新","兵"], hanjaEn: "new + soldier" },
+    { kr: "이병.",                   en: "Private (E-2); \"second soldier\".",            cat: "Military", hanja: ["二","兵"], hanjaEn: "two + soldier" },
+    { kr: "일병.",                   en: "Private (E-3); \"first soldier\".",             cat: "Military", hanja: ["一","兵"], hanjaEn: "one + soldier" },
+    { kr: "상병.",                   en: "Specialist (E-4); \"top soldier\".",            cat: "Military", hanja: ["上","兵"], hanjaEn: "top + soldier" },
+    { kr: "병장.",                   en: "Sergeant (E-5).",                              cat: "Military", hanja: ["兵","長"], hanjaEn: "soldier + chief" },
+    { kr: "하사.",                   en: "Staff Sergeant (E-6); \"bottom sergeant\".",    cat: "Military", hanja: ["下","士"], hanjaEn: "below + warrior" },
+    { kr: "중사.",                   en: "Sergeant First Class (E-7); \"middle sergeant\".", cat: "Military", hanja: ["中","士"], hanjaEn: "middle + warrior" },
+    { kr: "상사.",                   en: "Master Sergeant (E-8); \"top sergeant\".",      cat: "Military", hanja: ["上","士"], hanjaEn: "top + warrior" },
+    { kr: "원사.",                   en: "Sergeant Major (E-9); \"foremost sergeant\".",  cat: "Military", hanja: ["元","士"], hanjaEn: "foremost + warrior" },
+    { kr: "군인.",                   en: "A serviceman.",                               cat: "Military", hanja: ["軍","人"], hanjaEn: "military + person" },
     { kr: "그리고.",                  en: "And (then).",                                 cat: "Vocabulary" },
     { kr: "무엇.",                   en: "What.",                                       cat: "Vocabulary" },
     { kr: "소개하겠습니다.",           en: "Let me introduce.",                           cat: "Expressions" },
-    { kr: "직업.",                   en: "An occupation.",                              cat: "Vocabulary" },
+    { kr: "직업.",                   en: "An occupation.",                              cat: "Vocabulary", hanja: ["職","業"], hanjaEn: "duty + work" },
     { kr: "친구.",                   en: "A friend.",                                   cat: "Vocabulary" },
-    { kr: "학생.",                   en: "A student.",                                  cat: "Vocabulary" },
-    { kr: "육군.",                   en: "Army; a soldier; \"land military\".",           cat: "Military" },
-    { kr: "해군.",                   en: "Navy; a sailor; \"sea military\".",             cat: "Military" },
-    { kr: "해병대.",                  en: "Marine Corps; a marine.",                     cat: "Military" },
-    { kr: "회사원.",                  en: "A company employee; \"company member\".",       cat: "Vocabulary" },
+    { kr: "학생.",                   en: "A student.",                                  cat: "Vocabulary", hanja: ["學","生"], hanjaEn: "study + born" },
+    { kr: "육군.",                   en: "Army; a soldier; \"land military\".",           cat: "Military", hanja: ["陸","軍"], hanjaEn: "land + military" },
+    { kr: "해군.",                   en: "Navy; a sailor; \"sea military\".",             cat: "Military", hanja: ["海","軍"], hanjaEn: "sea + military" },
+    { kr: "해병대.",                  en: "Marine Corps; a marine.",                     cat: "Military", hanja: ["海","兵","隊"], hanjaEn: "sea + soldier + unit" },
+    { kr: "회사원.",                  en: "A company employee; \"company member\".",       cat: "Vocabulary", hanja: ["會","社","員"], hanjaEn: "gather + company + member" },
   ],
   "1.2 A": [
-    { kr: "가족.",    en: "A family.",                                    cat: "Family" },
+    { kr: "가족.",    en: "A family.",                                    cat: "Family", hanja: ["家","族"], hanjaEn: "home + clan" },
     { kr: "~명.",    en: "A counter for people.",                        cat: "Grammar" },
     { kr: "~분.",    en: "A counter for people (honorific).",            cat: "Grammar" },
     { kr: "모두.",   en: "All; every.",                                  cat: "Vocabulary" },
     { kr: "다.",     en: "All; every.",                                  cat: "Vocabulary" },
-    { kr: "부모.",   en: "Parents; father and mother.",                  cat: "Family" },
-    { kr: "부모님.", en: "Parents; father and mother (honorific).",      cat: "Family" },
+    { kr: "부모.",   en: "Parents; father and mother.",                  cat: "Family", hanja: ["父","母"], hanjaEn: "father + mother" },
+    { kr: "부모님.", en: "Parents; father and mother (honorific).",      cat: "Family", hanja: ["父","母",null], hanjaEn: "father + mother" },
     { kr: "아버지.", en: "A father.",                                    cat: "Family" },
     { kr: "아빠.",   en: "Dad.",                                         cat: "Family" },
     { kr: "아버님.", en: "A father (honorific).",                        cat: "Family" },
     { kr: "어머니.", en: "A mother.",                                    cat: "Family" },
     { kr: "엄마.",   en: "Mom.",                                         cat: "Family" },
     { kr: "어머님.", en: "A mother (honorific).",                        cat: "Family" },
-    { kr: "남동생.", en: "A younger brother; \"male younger sibling\".", cat: "Family" },
+    { kr: "남동생.", en: "A younger brother; \"male younger sibling\".", cat: "Family", hanja: ["男","同","生"], hanjaEn: "male + same + born" },
     { kr: "누나.",   en: "An older sister (to male).",                   cat: "Family" },
     { kr: "누님.",   en: "An older sister (to male) (honorific).",       cat: "Family" },
     { kr: "언니.",   en: "An older sister (to female).",                 cat: "Family" },
-    { kr: "여동생.", en: "A younger sister; \"female younger sibling\".", cat: "Family" },
+    { kr: "여동생.", en: "A younger sister; \"female younger sibling\".", cat: "Family", hanja: ["女","同","生"], hanjaEn: "female + same + born" },
     { kr: "오빠.",   en: "An older brother (to female).",                cat: "Family" },
     { kr: "형.",     en: "An older brother (to male).",                  cat: "Family" },
     { kr: "형님.",   en: "An older brother (to male) (honorific).",      cat: "Family" },
-    { kr: "형제.",   en: "(Male) siblings.",                             cat: "Family" },
+    { kr: "형제.",   en: "(Male) siblings.",                             cat: "Family", hanja: ["兄","弟"], hanjaEn: "elder brother + younger brother" },
     { kr: "저희.",   en: "We; my; our (humble).",                        cat: "Vocabulary" },
     { kr: "우리.",   en: "We; my; our.",                                 cat: "Vocabulary" },
     { kr: "~하고.",  en: "And (as a noun connector).",                   cat: "Grammar" },
   ],
   "1.2 B": [
-    { kr: "결혼하다.",      en: "To be married; to get married (dictionary form).", cat: "Vocabulary" },
-    { kr: "결혼했습니다.",  en: "To be married; to get married (past tense).",      cat: "Vocabulary" },
+    { kr: "결혼하다.",      en: "To be married; to get married (dictionary form).", cat: "Vocabulary", hanja: ["結","婚",null,null], hanjaEn: "tie + marriage" },
+    { kr: "결혼했습니다.",  en: "To be married; to get married (past tense).",      cat: "Vocabulary", hanja: ["結","婚",null,null,null,null], hanjaEn: "tie + marriage" },
     { kr: "나이.",          en: "Age.",                                             cat: "Vocabulary" },
-    { kr: "연세.",          en: "Age (honorific).",                                 cat: "Vocabulary" },
-    { kr: "남편.",          en: "A husband.",                                       cat: "Family" },
-    { kr: "부인.",          en: "A wife (honorific).",                              cat: "Family" },
+    { kr: "연세.",          en: "Age (honorific).",                                 cat: "Vocabulary", hanja: ["年","歲"], hanjaEn: "year + age" },
+    { kr: "남편.",          en: "A husband.",                                       cat: "Family", hanja: ["男","便"], hanjaEn: "male + convenient" },
+    { kr: "부인.",          en: "A wife (honorific).",                              cat: "Family", hanja: ["夫","人"], hanjaEn: "husband + person" },
     { kr: "아내.",          en: "A wife.",                                          cat: "Family" },
     { kr: "아이.",          en: "A child; a kid.",                                  cat: "Family" },
     { kr: "딸.",            en: "A daughter.",                                      cat: "Family" },
@@ -756,16 +815,16 @@ const LISTS = {
     { kr: "할아버님.",      en: "A grandfather (honorific).",                       cat: "Family" },
   ],
   "1.2 C": [
-    { kr: "간호사.",   en: "A nurse; \"nursing professional\".",                    cat: "Occupations" },
-    { kr: "경찰관.",   en: "A police officer.",                                    cat: "Occupations" },
-    { kr: "공무원.",   en: "A public servant; a government employee.",             cat: "Occupations" },
-    { kr: "변호사.",   en: "A lawyer; \"advocating professional\".",               cat: "Occupations" },
-    { kr: "소방관.",   en: "A firefighter; \"firefighting officer\".",             cat: "Occupations" },
-    { kr: "의사.",     en: "A doctor; \"medical professional\".",                  cat: "Occupations" },
-    { kr: "주부.",     en: "A homemaker.",                                         cat: "Occupations" },
-    { kr: "은행원.",   en: "A bank teller; a bank clerk.",                         cat: "Occupations" },
-    { kr: "병원.",     en: "A hospital; a doctor's office; \"illness house\".",    cat: "Vocabulary" },
-    { kr: "사진.",     en: "A photo.",                                             cat: "Vocabulary" },
+    { kr: "간호사.",   en: "A nurse; \"nursing professional\".",                    cat: "Occupations", hanja: ["看","護","師"], hanjaEn: "watch + protect + expert" },
+    { kr: "경찰관.",   en: "A police officer.",                                    cat: "Occupations", hanja: ["警","察","官"], hanjaEn: "warn + inspect + official" },
+    { kr: "공무원.",   en: "A public servant; a government employee.",             cat: "Occupations", hanja: ["公","務","員"], hanjaEn: "public + duty + member" },
+    { kr: "변호사.",   en: "A lawyer; \"advocating professional\".",               cat: "Occupations", hanja: ["辯","護","士"], hanjaEn: "argue + protect + expert" },
+    { kr: "소방관.",   en: "A firefighter; \"firefighting officer\".",             cat: "Occupations", hanja: ["消","防","官"], hanjaEn: "extinguish + prevent + official" },
+    { kr: "의사.",     en: "A doctor; \"medical professional\".",                  cat: "Occupations", hanja: ["醫","師"], hanjaEn: "medicine + expert" },
+    { kr: "주부.",     en: "A homemaker.",                                         cat: "Occupations", hanja: ["主","婦"], hanjaEn: "main + woman" },
+    { kr: "은행원.",   en: "A bank teller; a bank clerk.",                         cat: "Occupations", hanja: ["銀","行","員"], hanjaEn: "silver + go + member" },
+    { kr: "병원.",     en: "A hospital; a doctor's office; \"illness house\".",    cat: "Vocabulary", hanja: ["病","院"], hanjaEn: "illness + house" },
+    { kr: "사진.",     en: "A photo.",                                             cat: "Vocabulary", hanja: ["寫","眞"], hanjaEn: "copy + truth" },
     { kr: "살다.",     en: "To live; to reside.",                                  cat: "Vocabulary" },
     { kr: "누구.",     en: "Who; whom.",                                           cat: "Vocabulary" },
     { kr: "아주.",     en: "Very; extremely.",                                     cat: "Vocabulary" },
@@ -777,18 +836,18 @@ const LISTS = {
     { kr: "집.",       en: "A house; a home.",                                     cat: "Home" },
     { kr: "~층.",      en: "A floor; a story (of a building).",                    cat: "Home" },
     { kr: "방.",       en: "A room.",                                              cat: "Home" },
-    { kr: "거실.",     en: "A living room.",                                       cat: "Home" },
-    { kr: "침실.",     en: "A bedroom; \"sleeping room\".",                        cat: "Home" },
-    { kr: "화장실.",   en: "A bathroom; a restroom; \"makeup room\".",             cat: "Home" },
+    { kr: "거실.",     en: "A living room.",                                       cat: "Home", hanja: ["居","室"], hanjaEn: "dwell + room" },
+    { kr: "침실.",     en: "A bedroom; \"sleeping room\".",                        cat: "Home", hanja: ["寢","室"], hanjaEn: "sleep + room" },
+    { kr: "화장실.",   en: "A bathroom; a restroom; \"makeup room\".",             cat: "Home", hanja: ["化","粧","室"], hanjaEn: "change + adorn + room" },
     { kr: "부엌.",     en: "A kitchen.",                                           cat: "Home" },
-    { kr: "차고.",     en: "A garage; a carport.",                                 cat: "Home" },
+    { kr: "차고.",     en: "A garage; a carport.",                                 cat: "Home", hanja: ["車","庫"], hanjaEn: "vehicle + storehouse" },
     { kr: "마당.",     en: "A yard.",                                              cat: "Home" },
     { kr: "많다.",     en: "To be many.",                                          cat: "Descriptors" },
     { kr: "크다.",     en: "To be large; to be big; to be tall.",                  cat: "Descriptors" },
     { kr: "작다.",     en: "To be small.",                                         cat: "Descriptors" },
     { kr: "좋다.",     en: "To be good.",                                          cat: "Descriptors" },
     { kr: "넓다.",     en: "To be large; to be spacious.",                         cat: "Descriptors" },
-    { kr: "근처.",     en: "Near; in the neighborhood.",                           cat: "Vocabulary" },
+    { kr: "근처.",     en: "Near; in the neighborhood.",                           cat: "Vocabulary", hanja: ["近","處"], hanjaEn: "near + place" },
     { kr: "바다.",     en: "An ocean.",                                            cat: "Vocabulary" },
     { kr: "강.",       en: "A river.",                                             cat: "Vocabulary" },
     { kr: "나무.",     en: "A tree.",                                              cat: "Vocabulary" },
@@ -823,11 +882,11 @@ const LISTS = {
     { kr: "아파트.",   en: "An apartment.",                    cat: "Objects" },
     { kr: "옷.",       en: "Clothes.",                         cat: "Objects" },
     { kr: "옷장.",     en: "A closet; \"clothes cabinet\".",   cat: "Objects" },
-    { kr: "의자.",     en: "A chair.",                         cat: "Objects" },
-    { kr: "창문.",     en: "A window.",                        cat: "Objects" },
-    { kr: "책.",       en: "A book.",                          cat: "Objects" },
-    { kr: "책상.",     en: "A desk; \"book table\".",          cat: "Objects" },
-    { kr: "책장.",     en: "A bookcase; \"book cabinet\".",    cat: "Objects" },
+    { kr: "의자.",     en: "A chair.",                         cat: "Objects", hanja: ["椅","子"], hanjaEn: "chair + object" },
+    { kr: "창문.",     en: "A window.",                        cat: "Objects", hanja: ["窓","門"], hanjaEn: "window + door" },
+    { kr: "책.",       en: "A book.",                          cat: "Objects", hanja: ["冊"], hanjaEn: "book" },
+    { kr: "책상.",     en: "A desk; \"book table\".",          cat: "Objects", hanja: ["冊","床"], hanjaEn: "book + table" },
+    { kr: "책장.",     en: "A bookcase; \"book cabinet\".",    cat: "Objects", hanja: ["冊","欌"], hanjaEn: "book + cabinet" },
     { kr: "침대.",     en: "A bed; \"sleeping board\".",       cat: "Objects" },
     { kr: "카메라.",   en: "A camera.",                        cat: "Objects" },
     { kr: "커튼.",     en: "A curtain.",                       cat: "Objects" },
@@ -841,8 +900,8 @@ const LISTS = {
     { kr: "저 ~.",     en: "That over there (indicator).",     cat: "Grammar" },
   ],
   "1.3 C": [
-    { kr: "공부.",       en: "Studies (noun).",                          cat: "Vocabulary" },
-    { kr: "공부하다.",   en: "To study (verb).",                         cat: "Vocabulary" },
+    { kr: "공부.",       en: "Studies (noun).",                          cat: "Vocabulary", hanja: ["工","夫"], hanjaEn: "work + man" },
+    { kr: "공부하다.",   en: "To study (verb).",                         cat: "Vocabulary", hanja: ["工","夫",null,null], hanjaEn: "work + man" },
     { kr: "듣다.",       en: "To listen; to hear.",                      cat: "Vocabulary" },
     { kr: "먹다.",       en: "To eat.",                                  cat: "Vocabulary" },
     { kr: "드시다.",     en: "To eat (honorific).",                      cat: "Vocabulary" },
@@ -851,26 +910,26 @@ const LISTS = {
     { kr: "빨래.",       en: "Laundry.",                                 cat: "Vocabulary" },
     { kr: "빨래하다.",   en: "To do laundry.",                           cat: "Vocabulary" },
     { kr: "설거지하다.", en: "To do the dishes.",                        cat: "Vocabulary" },
-    { kr: "숙제.",       en: "Homework.",                                cat: "Vocabulary" },
-    { kr: "숙제하다.",   en: "To do homework.",                          cat: "Vocabulary" },
+    { kr: "숙제.",       en: "Homework.",                                cat: "Vocabulary", hanja: ["宿","題"], hanjaEn: "lodge + topic" },
+    { kr: "숙제하다.",   en: "To do homework.",                          cat: "Vocabulary", hanja: ["宿","題",null,null], hanjaEn: "lodge + topic" },
     { kr: "쉬다.",       en: "To rest; to take a break.",                cat: "Vocabulary" },
-    { kr: "식사.",       en: "A meal.",                                  cat: "Vocabulary" },
-    { kr: "식사하다.",   en: "To have a meal; \"to do dining\".",        cat: "Vocabulary" },
-    { kr: "요리.",       en: "Cooking.",                                 cat: "Vocabulary" },
-    { kr: "요리하다.",   en: "To cook; \"to do cooking\".",              cat: "Vocabulary" },
-    { kr: "운동.",       en: "Exercise.",                                cat: "Vocabulary" },
-    { kr: "운동하다.",   en: "To do exercise; to work out.",             cat: "Vocabulary" },
+    { kr: "식사.",       en: "A meal.",                                  cat: "Vocabulary", hanja: ["食","事"], hanjaEn: "eat + matter" },
+    { kr: "식사하다.",   en: "To have a meal; \"to do dining\".",        cat: "Vocabulary", hanja: ["食","事",null,null], hanjaEn: "eat + matter" },
+    { kr: "요리.",       en: "Cooking.",                                 cat: "Vocabulary", hanja: ["料","理"], hanjaEn: "ingredient + manage" },
+    { kr: "요리하다.",   en: "To cook; \"to do cooking\".",              cat: "Vocabulary", hanja: ["料","理",null,null], hanjaEn: "ingredient + manage" },
+    { kr: "운동.",       en: "Exercise.",                                cat: "Vocabulary", hanja: ["運","動"], hanjaEn: "move + action" },
+    { kr: "운동하다.",   en: "To do exercise; to work out.",             cat: "Vocabulary", hanja: ["運","動",null,null], hanjaEn: "move + action" },
     { kr: "읽다.",       en: "To read.",                                 cat: "Vocabulary" },
     { kr: "자다.",       en: "To sleep.",                                cat: "Vocabulary" },
     { kr: "주무시다.",   en: "To sleep (honorific).",                    cat: "Vocabulary" },
-    { kr: "청소.",       en: "Cleaning.",                                cat: "Vocabulary" },
-    { kr: "청소하다.",   en: "To clean; \"to do cleaning\".",            cat: "Vocabulary" },
+    { kr: "청소.",       en: "Cleaning.",                                cat: "Vocabulary", hanja: ["淸","掃"], hanjaEn: "clear + sweep" },
+    { kr: "청소하다.",   en: "To clean; \"to do cleaning\".",            cat: "Vocabulary", hanja: ["淸","掃",null,null], hanjaEn: "clear + sweep" },
     { kr: "~을.",        en: "Object marker (after consonant).",         cat: "Grammar" },
     { kr: "~를.",        en: "Object marker (after vowel).",             cat: "Grammar" },
-    { kr: "음악.",       en: "Music; \"delightful sound\".",             cat: "Vocabulary" },
-    { kr: "주말.",       en: "Weekend.",                                 cat: "Vocabulary" },
+    { kr: "음악.",       en: "Music; \"delightful sound\".",             cat: "Vocabulary", hanja: ["音","樂"], hanjaEn: "sound + enjoyment" },
+    { kr: "주말.",       en: "Weekend.",                                 cat: "Vocabulary", hanja: ["週","末"], hanjaEn: "week + end" },
     { kr: "밥.",         en: "A meal; (cooked) rice.",                   cat: "Vocabulary" },
-    { kr: "신문.",       en: "Newspapers.",                              cat: "Vocabulary" },
+    { kr: "신문.",       en: "Newspapers.",                              cat: "Vocabulary", hanja: ["新","聞"], hanjaEn: "new + hear" },
   ],
   "1.4 A": [
     { kr: "가깝다.",     en: "To be near; to be close.",                 cat: "Descriptors" },
@@ -878,43 +937,43 @@ const LISTS = {
     { kr: "건너편.",     en: "The opposite side; the other side; across from.", cat: "Vocabulary" },
     { kr: "맞은편.",     en: "The opposite side; the other side; across from.", cat: "Vocabulary" },
     { kr: "건물.",       en: "A building.",                              cat: "Vocabulary" },
-    { kr: "기숙사.",     en: "A dormitory.",                             cat: "Vocabulary" },
-    { kr: "도서관.",     en: "A library; \"house of pictures and books\".", cat: "Vocabulary" },
+    { kr: "기숙사.",     en: "A dormitory.",                             cat: "Vocabulary", hanja: ["寄","宿","舍"], hanjaEn: "lodge + stay + house" },
+    { kr: "도서관.",     en: "A library; \"house of pictures and books\".", cat: "Vocabulary", hanja: ["圖","書","館"], hanjaEn: "picture + book + hall" },
     { kr: "말.",         en: "A language; a speech; utterance.",         cat: "Vocabulary" },
     { kr: "독일.",       en: "Germany.",                                 cat: "Countries" },
     { kr: "러시아.",     en: "Russia.",                                  cat: "Countries" },
-    { kr: "미국.",       en: "America; \"beautiful country\".",          cat: "Countries" },
-    { kr: "영국.",       en: "Great Britain; the UK.",                   cat: "Countries" },
+    { kr: "미국.",       en: "America; \"beautiful country\".",          cat: "Countries", hanja: ["美","國"], hanjaEn: "beautiful + country" },
+    { kr: "영국.",       en: "Great Britain; the UK.",                   cat: "Countries", hanja: ["英","國"], hanjaEn: "hero + country" },
     { kr: "스페인.",     en: "Spain.",                                   cat: "Countries" },
     { kr: "사람.",       en: "A person; people.",                        cat: "Vocabulary" },
-    { kr: "학교.",       en: "A school.",                                cat: "Vocabulary" },
-    { kr: "본부.",       en: "A headquarters.",                          cat: "Vocabulary" },
+    { kr: "학교.",       en: "A school.",                                cat: "Vocabulary", hanja: ["學","校"], hanjaEn: "study + school" },
+    { kr: "본부.",       en: "A headquarters.",                          cat: "Vocabulary", hanja: ["本","部"], hanjaEn: "main + division" },
     { kr: "~에서.",      en: "From.",                                    cat: "Grammar" },
     { kr: "조금.",       en: "A little; a bit.",                         cat: "Vocabulary" },
     { kr: "좀.",         en: "A little; a bit.",                         cat: "Vocabulary" },
-    { kr: "주차장.",     en: "A parking lot.",                           cat: "Vocabulary" },
-    { kr: "우체국.",     en: "A post office.",                           cat: "Vocabulary" },
-    { kr: "운동장.",     en: "A track and field; a playground; \"exercising place\".", cat: "Vocabulary" },
-    { kr: "일본.",       en: "Japan.",                                   cat: "Countries" },
+    { kr: "주차장.",     en: "A parking lot.",                           cat: "Vocabulary", hanja: ["駐","車","場"], hanjaEn: "station + vehicle + place" },
+    { kr: "우체국.",     en: "A post office.",                           cat: "Vocabulary", hanja: ["郵","遞","局"], hanjaEn: "post + deliver + office" },
+    { kr: "운동장.",     en: "A track and field; a playground; \"exercising place\".", cat: "Vocabulary", hanja: ["運","動","場"], hanjaEn: "move + action + place" },
+    { kr: "일본.",       en: "Japan.",                                   cat: "Countries", hanja: ["日","本"], hanjaEn: "sun + origin" },
     { kr: "일본어.",     en: "Japanese (language).",                     cat: "Countries" },
     { kr: "아랍어.",     en: "Arabic.",                                  cat: "Countries" },
-    { kr: "중국.",       en: "China.",                                   cat: "Countries" },
+    { kr: "중국.",       en: "China.",                                   cat: "Countries", hanja: ["中","國"], hanjaEn: "middle + country" },
     { kr: "중국어.",     en: "Chinese (language).",                      cat: "Countries" },
-    { kr: "프랑스.",     en: "France.",                                  cat: "Countries" },
+    { kr: "프랑스.",     en: "France.",                                  cat: "Countries", hanja: ["佛","蘭","西"], hanjaEn: "Buddha + orchid + west" },
     { kr: "프랑스어.",   en: "French (language).",                       cat: "Countries" },
     { kr: "불어.",       en: "French (language).",                       cat: "Countries" },
     { kr: "영어.",       en: "English (language).",                      cat: "Countries" },
-    { kr: "한국.",       en: "Korea.",                                   cat: "Countries" },
-    { kr: "한국어.",     en: "Korean (language).",                       cat: "Countries" },
+    { kr: "한국.",       en: "Korea.",                                   cat: "Countries", hanja: ["韓","國"], hanjaEn: "Korea + country" },
+    { kr: "한국어.",     en: "Korean (language).",                       cat: "Countries", hanja: ["韓","國","語"], hanjaEn: "Korea + country + language" },
   ],
   "1.4 B": [
-    { kr: "공책.",       en: "A notebook; \"empty book\".",              cat: "Vocabulary" },
-    { kr: "교실.",       en: "A classroom.",                             cat: "Vocabulary" },
-    { kr: "단어.",       en: "A (vocabulary) word.",                     cat: "Vocabulary" },
+    { kr: "공책.",       en: "A notebook; \"empty book\".",              cat: "Vocabulary", hanja: ["空","冊"], hanjaEn: "empty + book" },
+    { kr: "교실.",       en: "A classroom.",                             cat: "Vocabulary", hanja: ["敎","室"], hanjaEn: "teach + room" },
+    { kr: "단어.",       en: "A (vocabulary) word.",                     cat: "Vocabulary", hanja: ["單","語"], hanjaEn: "single + word" },
     { kr: "문.",         en: "A door; a gate.",                          cat: "Vocabulary" },
-    { kr: "사무실.",     en: "An office.",                               cat: "Vocabulary" },
-    { kr: "사전.",       en: "A dictionary.",                            cat: "Vocabulary" },
-    { kr: "수업.",       en: "A class; a lesson.",                       cat: "Vocabulary" },
+    { kr: "사무실.",     en: "An office.",                               cat: "Vocabulary", hanja: ["事","務","室"], hanjaEn: "matter + duty + room" },
+    { kr: "사전.",       en: "A dictionary.",                            cat: "Vocabulary", hanja: ["辭","典"], hanjaEn: "words + canon" },
+    { kr: "수업.",       en: "A class; a lesson.",                       cat: "Vocabulary", hanja: ["授","業"], hanjaEn: "teach + work" },
     { kr: "쓰다.",       en: "To use; to write.",                        cat: "Vocabulary" },
     { kr: "쓰레기통.",   en: "A trash can; \"trash container\".",        cat: "Vocabulary" },
     { kr: "자리.",       en: "A seat; one's place.",                     cat: "Vocabulary" },
@@ -922,7 +981,7 @@ const LISTS = {
     { kr: "앉다.",       en: "To sit down.",                             cat: "Vocabulary" },
     { kr: "열다.",       en: "To open (a door / window).",               cat: "Vocabulary" },
     { kr: "닫다.",       en: "To close (a door / window).",              cat: "Vocabulary" },
-    { kr: "칠판.",       en: "A blackboard; a whiteboard; \"painting board\".", cat: "Vocabulary" },
+    { kr: "칠판.",       en: "A blackboard; a whiteboard; \"painting board\".", cat: "Vocabulary", hanja: ["漆","板"], hanjaEn: "lacquer + board" },
     { kr: "지우다.",     en: "To erase.",                                cat: "Vocabulary" },
     { kr: "켜다.",       en: "To turn on; to switch on.",                cat: "Vocabulary" },
     { kr: "끄다.",       en: "To turn off; to switch off; to put out.",  cat: "Vocabulary" },
@@ -951,17 +1010,17 @@ const LISTS = {
     { kr: "넷째.",       en: "The fourth.",                               cat: "Vocabulary" },
     { kr: "돌다.",       en: "To turn; to spin.",                        cat: "Vocabulary" },
     { kr: "바로.",       en: "Just; right.",                             cat: "Vocabulary" },
-    { kr: "사거리.",     en: "An intersection; \"four ways\".",          cat: "Vocabulary" },
-    { kr: "정문.",       en: "A main gate; \"right door\".",             cat: "Vocabulary" },
-    { kr: "체육관.",     en: "A gymnasium; \"physical exercise place\".", cat: "Vocabulary" },
-    { kr: "식당.",       en: "A restaurant; a cafeteria; a dining room.", cat: "Vocabulary" },
+    { kr: "사거리.",     en: "An intersection; \"four ways\".",          cat: "Vocabulary", hanja: ["四",null,null], hanjaEn: "four" },
+    { kr: "정문.",       en: "A main gate; \"right door\".",             cat: "Vocabulary", hanja: ["正","門"], hanjaEn: "right + gate" },
+    { kr: "체육관.",     en: "A gymnasium; \"physical exercise place\".", cat: "Vocabulary", hanja: ["體","育","館"], hanjaEn: "body + raise + hall" },
+    { kr: "식당.",       en: "A restaurant; a cafeteria; a dining room.", cat: "Vocabulary", hanja: ["食","堂"], hanjaEn: "eat + hall" },
     { kr: "알다.",       en: "To know.",                                 cat: "Vocabulary" },
     { kr: "어떻게.",     en: "How.",                                     cat: "Vocabulary" },
     { kr: "오다.",       en: "To come.",                                 cat: "Vocabulary" },
-    { kr: "좌회전.",     en: "Left turn.",                                cat: "Vocabulary" },
-    { kr: "좌회전하다.", en: "To turn left.",                            cat: "Vocabulary" },
-    { kr: "우회전.",     en: "Right turn.",                               cat: "Vocabulary" },
-    { kr: "우회전하다.", en: "To turn right.",                           cat: "Vocabulary" },
+    { kr: "좌회전.",     en: "Left turn.",                                cat: "Vocabulary", hanja: ["左","回","轉"], hanjaEn: "left + return + turn" },
+    { kr: "좌회전하다.", en: "To turn left.",                            cat: "Vocabulary", hanja: ["左","回","轉",null,null], hanjaEn: "left + return + turn" },
+    { kr: "우회전.",     en: "Right turn.",                               cat: "Vocabulary", hanja: ["右","回","轉"], hanjaEn: "right + return + turn" },
+    { kr: "우회전하다.", en: "To turn right.",                           cat: "Vocabulary", hanja: ["右","回","轉",null,null], hanjaEn: "right + return + turn" },
     { kr: "~로.",        en: "To; toward; in the direction of. (으 added after a consonant-ending stem.)", cat: "Grammar" },
     { kr: "-은.",        en: "Attributive form for stative verbs (consonant-ending stem; ㄴ alone after a vowel-ending stem).", cat: "Grammar" },
     { kr: "~쪽.",        en: "A direction; a side.",                     cat: "Grammar" },
@@ -978,7 +1037,7 @@ const LISTS = {
     { kr: "시작하다.",   en: "To start; to begin.",                      cat: "Time" },
     { kr: "끝나다.",     en: "To end; to be over.",                      cat: "Time" },
     { kr: "보내다.",     en: "To spend (time).",                         cat: "Time" },
-    { kr: "시간.",       en: "An hour (duration); time.",                cat: "Time" },
+    { kr: "시간.",       en: "An hour (duration); time.",                cat: "Time", hanja: ["時","間"], hanjaEn: "time + between" },
     { kr: "-시.",        en: "Hour; o'clock.",                           cat: "Grammar" },
     { kr: "-분.",        en: "Minute.",                                  cat: "Grammar" },
     { kr: "-주.",        en: "A week.",                                  cat: "Grammar" },
@@ -989,10 +1048,10 @@ const LISTS = {
     { kr: "-번.",        en: "A time/times; number.",                    cat: "Grammar" },
     { kr: "언제.",       en: "When.",                                    cat: "Vocabulary" },
     { kr: "얼마나.",     en: "How much/many (quantity or duration).",    cat: "Vocabulary" },
-    { kr: "오전.",       en: "a.m.; morning.",                           cat: "Time" },
-    { kr: "오후.",       en: "p.m.; afternoon.",                         cat: "Time" },
-    { kr: "점심.",       en: "Lunch; lunch time.",                       cat: "Time" },
-    { kr: "저녁.",       en: "Evening; dinner.",                         cat: "Time" },
+    { kr: "오전.",       en: "a.m.; morning.",                           cat: "Time", hanja: ["午","前"], hanjaEn: "noon + before" },
+    { kr: "오후.",       en: "p.m.; afternoon.",                         cat: "Time", hanja: ["午","後"], hanjaEn: "noon + after" },
+    { kr: "점심.",       en: "Lunch; lunch time.",                       cat: "Time", hanja: ["點","心"], hanjaEn: "dot + heart" },
+    { kr: "저녁.",       en: "Evening; dinner.",                         cat: "Time", hanja: ["貯","夕"], hanjaEn: "store + evening" },
     { kr: "-쯤.",        en: "About; approximately.",                    cat: "Grammar" },
   ],
   "2.5 B": [
@@ -1005,14 +1064,14 @@ const LISTS = {
     { kr: "샤워하다.",       en: "To take a shower.",                       cat: "Vocabulary" },
     { kr: "세수.",           en: "Washing one's face.",                     cat: "Vocabulary" },
     { kr: "세수하다.",       en: "To wash one's face.",                     cat: "Vocabulary" },
-    { kr: "수업을 듣다.",    en: "To take a class.",                        cat: "Vocabulary" },
+    { kr: "수업을 듣다.",    en: "To take a class.",                        cat: "Vocabulary", hanja: ["授","業",null,null,null], hanjaEn: "teach + work" },
     { kr: "씻다.",           en: "To wash; to rinse.",                      cat: "Vocabulary" },
     { kr: "이를 닦다.",      en: "To brush one's teeth.",                   cat: "Vocabulary" },
     { kr: "일어나다.",       en: "To get up; to wake up; to rise.",         cat: "Vocabulary" },
     { kr: "연습.",           en: "Practicing (noun).",                      cat: "Vocabulary" },
     { kr: "연습하다.",       en: "To practice.",                            cat: "Vocabulary" },
     { kr: "말하기.",         en: "Speaking.",                               cat: "Vocabulary" },
-    { kr: "아침.",           en: "a.m.; morning; breakfast.",               cat: "Time" },
+    { kr: "아침.",           en: "a.m.; morning; breakfast.",               cat: "Time", hanja: ["朝","飯"], hanjaEn: "morning + meal" },
     { kr: "-서.",        en: "And thus; and then; so; because. (Full form: -아서 / -어서)", cat: "Grammar", prefix: "-아/어" },
     { kr: "늘.",             en: "Always; all the time.",                   cat: "Vocabulary" },
     { kr: "정도.",           en: "About; approximately.",                   cat: "Vocabulary" },
@@ -1034,13 +1093,13 @@ const LISTS = {
     { kr: "-에게.",          en: "To (a person); formal/written.",              cat: "Grammar" },
     { kr: "-한테.",          en: "To (a person); colloquial/spoken.",           cat: "Grammar" },
     { kr: "-께.",            en: "To (a person); honorific.",                   cat: "Grammar" },
-    { kr: "월요일.",         en: "Monday.",                                     cat: "Days" },
-    { kr: "화요일.",         en: "Tuesday.",                                    cat: "Days" },
-    { kr: "수요일.",         en: "Wednesday.",                                  cat: "Days" },
-    { kr: "목요일.",         en: "Thursday.",                                   cat: "Days" },
-    { kr: "금요일.",         en: "Friday.",                                     cat: "Days" },
-    { kr: "토요일.",         en: "Saturday.",                                   cat: "Days" },
-    { kr: "일요일.",         en: "Sunday.",                                     cat: "Days" },
+    { kr: "월요일.",         en: "Monday.",                                     cat: "Days", hanja: ["月","曜","日"], hanjaEn: "moon + day + sun" },
+    { kr: "화요일.",         en: "Tuesday.",                                    cat: "Days", hanja: ["火","曜","日"], hanjaEn: "fire + day + sun" },
+    { kr: "수요일.",         en: "Wednesday.",                                  cat: "Days", hanja: ["水","曜","日"], hanjaEn: "water + day + sun" },
+    { kr: "목요일.",         en: "Thursday.",                                   cat: "Days", hanja: ["木","曜","日"], hanjaEn: "wood + day + sun" },
+    { kr: "금요일.",         en: "Friday.",                                     cat: "Days", hanja: ["金","曜","日"], hanjaEn: "gold + day + sun" },
+    { kr: "토요일.",         en: "Saturday.",                                   cat: "Days", hanja: ["土","曜","日"], hanjaEn: "earth + day + sun" },
+    { kr: "일요일.",         en: "Sunday.",                                     cat: "Days", hanja: ["日","曜","日"], hanjaEn: "sun + day + sun" },
     { kr: "일찍.",           en: "Early.",                                      cat: "Vocabulary" },
     { kr: "지난.",           en: "Last; the past.",                             cat: "Vocabulary" },
     { kr: "천.",             en: "A thousand.",                                 cat: "Vocabulary" },
@@ -1055,7 +1114,7 @@ const LISTS = {
     { kr: "여름.",       en: "Summer.",                                  cat: "Seasons" },
     { kr: "가을.",       en: "Fall; autumn.",                            cat: "Seasons" },
     { kr: "겨울.",       en: "Winter.",                                  cat: "Seasons" },
-    { kr: "계절.",       en: "A season.",                                cat: "Seasons" },
+    { kr: "계절.",       en: "A season.",                                cat: "Seasons", hanja: ["季","節"], hanjaEn: "season + period" },
     { kr: "구름.",       en: "Cloud.",                                   cat: "Weather" },
     { kr: "끼다.",       en: "To form (fog, cloud, dust, etc.).",        cat: "Weather" },
     { kr: "날씨.",       en: "Weather.",                                 cat: "Weather" },
@@ -1079,23 +1138,23 @@ const LISTS = {
     { kr: "-고 싶다.",     en: "Want to; wish to (first person — one's own desire).",   cat: "Grammar" },
     { kr: "-고 싶어하다.", en: "Want to; wish to (third person — someone else's desire).", cat: "Grammar" },
     { kr: "못.",           en: "Unable to; cannot (used before a verb).",               cat: "Grammar", suffix: "+verb" },
-    { kr: "취미.",         en: "A hobby.",                                              cat: "Vocabulary" },
+    { kr: "취미.",         en: "A hobby.",                                              cat: "Vocabulary", hanja: ["趣","味"], hanjaEn: "interest + taste" },
     { kr: "골프.",         en: "Golf.",                                                 cat: "Sports" },
-    { kr: "농구.",         en: "Basketball.",                                           cat: "Sports" },
+    { kr: "농구.",         en: "Basketball.",                                           cat: "Sports", hanja: ["籠","球"], hanjaEn: "basket + ball" },
     { kr: "배구.",         en: "Volleyball.",                                           cat: "Sports" },
-    { kr: "야구.",         en: "Baseball.",                                             cat: "Sports" },
-    { kr: "축구.",         en: "Soccer; football.",                                     cat: "Sports" },
-    { kr: "탁구.",         en: "Table tennis.",                                         cat: "Sports" },
+    { kr: "야구.",         en: "Baseball.",                                             cat: "Sports", hanja: ["野","球"], hanjaEn: "field + ball" },
+    { kr: "축구.",         en: "Soccer; football.",                                     cat: "Sports", hanja: ["蹴","球"], hanjaEn: "kick + ball" },
+    { kr: "탁구.",         en: "Table tennis.",                                         cat: "Sports", hanja: ["卓","球"], hanjaEn: "table + ball" },
     { kr: "볼링.",         en: "Bowling.",                                              cat: "Sports" },
-    { kr: "독서.",         en: "Reading (books).",                                      cat: "Vocabulary" },
+    { kr: "독서.",         en: "Reading (books).",                                      cat: "Vocabulary", hanja: ["讀","書"], hanjaEn: "read + book" },
     { kr: "테니스.",       en: "Tennis.",                                               cat: "Sports" },
     { kr: "스노보드.",     en: "Snowboard.",                                            cat: "Sports" },
     { kr: "스케이트.",     en: "Skate.",                                                cat: "Sports" },
     { kr: "스키.",         en: "Ski.",                                                  cat: "Sports" },
     { kr: "쉽다.",         en: "To be easy.",                                           cat: "Descriptors" },
     { kr: "어렵다.",       en: "To be difficult.",                                      cat: "Descriptors" },
-    { kr: "여행.",         en: "Travel; travels (noun).",                               cat: "Vocabulary" },
-    { kr: "여행하다.",     en: "To travel.",                                            cat: "Vocabulary" },
+    { kr: "여행.",         en: "Travel; travels (noun).",                               cat: "Vocabulary", hanja: ["旅","行"], hanjaEn: "travel + go" },
+    { kr: "여행하다.",     en: "To travel.",                                            cat: "Vocabulary", hanja: ["旅","行",null,null], hanjaEn: "travel + go" },
     { kr: "재미있다.",     en: "To be fun; to be enjoyable.",                           cat: "Descriptors" },
     { kr: "좋아하다.",     en: "To like.",                                              cat: "Vocabulary" },
     { kr: "배우다.",       en: "To learn.",                                             cat: "Vocabulary" },
@@ -1106,23 +1165,23 @@ const LISTS = {
   ],
   "2.6 C": [
     { kr: "같이.",         en: "(Along) with; together.",                               cat: "Vocabulary" },
-    { kr: "계획.",         en: "A plan.",                                               cat: "Vocabulary" },
-    { kr: "계획하다.",     en: "To plan.",                                              cat: "Vocabulary" },
+    { kr: "계획.",         en: "A plan.",                                               cat: "Vocabulary", hanja: ["計","劃"], hanjaEn: "calculate + draw" },
+    { kr: "계획하다.",     en: "To plan.",                                              cat: "Vocabulary", hanja: ["計","劃",null,null], hanjaEn: "calculate + draw" },
     { kr: "구경.",         en: "Watching; sightseeing.",                                cat: "Vocabulary" },
     { kr: "구경하다.",     en: "To watch; to sightsee.",                                cat: "Vocabulary" },
     { kr: "만나다.",       en: "To meet; to see.",                                      cat: "Vocabulary" },
-    { kr: "산책.",         en: "A walk; a stroll.",                                     cat: "Vocabulary" },
-    { kr: "산책하다.",     en: "To take a walk.",                                       cat: "Vocabulary" },
-    { kr: "야영.",         en: "A camp; camping.",                                      cat: "Vocabulary" },
-    { kr: "야영하다.",     en: "To camp.",                                              cat: "Vocabulary" },
-    { kr: "전화.",         en: "A telephone; a phone call.",                            cat: "Vocabulary" },
-    { kr: "전화하다.",     en: "To make a phone call.",                                 cat: "Vocabulary" },
+    { kr: "산책.",         en: "A walk; a stroll.",                                     cat: "Vocabulary", hanja: ["散","策"], hanjaEn: "scatter + stroll" },
+    { kr: "산책하다.",     en: "To take a walk.",                                       cat: "Vocabulary", hanja: ["散","策",null,null], hanjaEn: "scatter + stroll" },
+    { kr: "야영.",         en: "A camp; camping.",                                      cat: "Vocabulary", hanja: ["野","營"], hanjaEn: "field + camp" },
+    { kr: "야영하다.",     en: "To camp.",                                              cat: "Vocabulary", hanja: ["野","營",null,null], hanjaEn: "field + camp" },
+    { kr: "전화.",         en: "A telephone; a phone call.",                            cat: "Vocabulary", hanja: ["電","話"], hanjaEn: "electric + speech" },
+    { kr: "전화하다.",     en: "To make a phone call.",                                 cat: "Vocabulary", hanja: ["電","話",null,null], hanjaEn: "electric + speech" },
     { kr: "골프장.",       en: "A golf course.",                                        cat: "Vocabulary" },
-    { kr: "공원.",         en: "A park.",                                               cat: "Vocabulary" },
+    { kr: "공원.",         en: "A park.",                                               cat: "Vocabulary", hanja: ["公","園"], hanjaEn: "public + garden" },
     { kr: "달리기.",       en: "Running; jogging.",                                     cat: "Vocabulary" },
     { kr: "바닷가.",       en: "The beach; the coast; the seaside.",                    cat: "Vocabulary" },
-    { kr: "영화.",         en: "A movie.",                                              cat: "Vocabulary" },
-    { kr: "자전거.",       en: "A bicycle.",                                            cat: "Vocabulary" },
+    { kr: "영화.",         en: "A movie.",                                              cat: "Vocabulary", hanja: ["映","畫"], hanjaEn: "reflect + picture" },
+    { kr: "자전거.",       en: "A bicycle.",                                            cat: "Vocabulary", hanja: ["自","轉","車"], hanjaEn: "self + turn + vehicle" },
     { kr: "-러 가다.",     en: "To go (in order) to— (으 added after consonant-ending stem).", cat: "Grammar", prefix: "-으/" },
     { kr: "-러 오다.",     en: "To come (in order) to— (으 added after consonant-ending stem).", cat: "Grammar", prefix: "-으/" },
     { kr: "-읍시다.",      en: "Let's— (consonant-ending stem; vowel-ending stem drops 으 → -ㅂ시다).", cat: "Grammar" },
@@ -1131,16 +1190,16 @@ const LISTS = {
   "2.7 A": [
     { kr: "시내.",         en: "Downtown; \"in(side) city\".",                          cat: "Vocabulary" },
     { kr: "가게.",         en: "A store; a shop.",                                      cat: "Vocabulary" },
-    { kr: "서점.",         en: "A bookstore.",                                          cat: "Vocabulary" },
+    { kr: "서점.",         en: "A bookstore.",                                          cat: "Vocabulary", hanja: ["書","店"], hanjaEn: "book + shop" },
     { kr: "제과점.",       en: "A bakery.",                                             cat: "Vocabulary" },
     { kr: "빵집.",         en: "A bakery.",                                             cat: "Vocabulary" },
-    { kr: "약국.",         en: "A pharmacy; a drug store.",                             cat: "Vocabulary" },
-    { kr: "은행.",         en: "A bank.",                                               cat: "Vocabulary" },
-    { kr: "영화관.",       en: "A movie theater.",                                      cat: "Vocabulary" },
-    { kr: "주유소.",       en: "A gas station; \"fueling place\".",                     cat: "Vocabulary" },
+    { kr: "약국.",         en: "A pharmacy; a drug store.",                             cat: "Vocabulary", hanja: ["藥","局"], hanjaEn: "medicine + office" },
+    { kr: "은행.",         en: "A bank.",                                               cat: "Vocabulary", hanja: ["銀","行"], hanjaEn: "silver + go" },
+    { kr: "영화관.",       en: "A movie theater.",                                      cat: "Vocabulary", hanja: ["映","畫","館"], hanjaEn: "reflect + picture + hall" },
+    { kr: "주유소.",       en: "A gas station; \"fueling place\".",                     cat: "Vocabulary", hanja: ["注","油","所"], hanjaEn: "pour + oil + place" },
     { kr: "꽃집.",         en: "A flower shop; \"flower house\".",                      cat: "Vocabulary" },
-    { kr: "백화점.",       en: "A department store.",                                   cat: "Vocabulary" },
-    { kr: "세탁소.",       en: "A dry cleaner; a Laundromat; \"cleaning place\".",      cat: "Vocabulary" },
+    { kr: "백화점.",       en: "A department store.",                                   cat: "Vocabulary", hanja: ["百","貨","店"], hanjaEn: "hundred + goods + shop" },
+    { kr: "세탁소.",       en: "A dry cleaner; a Laundromat; \"cleaning place\".",      cat: "Vocabulary", hanja: ["洗","濯","所"], hanjaEn: "wash + rinse + place" },
     { kr: "걸리다.",       en: "To take (time).",                                       cat: "Vocabulary" },
     { kr: "찾다.",         en: "To withdraw (money); to find.",                         cat: "Vocabulary" },
     { kr: "이야기.",       en: "A chat; a talk; a story.",                              cat: "Vocabulary" },
@@ -1151,24 +1210,24 @@ const LISTS = {
     { kr: "맡기다.",       en: "To entrust; to deposit; to leave in someone's care.",   cat: "Vocabulary" },
     { kr: "기름.",         en: "Oil; gasoline.",                                        cat: "Vocabulary" },
     { kr: "넣다.",         en: "To insert; to put in.",                                 cat: "Vocabulary" },
-    { kr: "물건.",         en: "A thing; stuff; goods.",                                cat: "Vocabulary" },
-    { kr: "생일.",         en: "A birthday.",                                           cat: "Vocabulary" },
-    { kr: "생신.",         en: "A birthday (honorific).",                               cat: "Vocabulary" },
-    { kr: "약.",           en: "Medicine; drug; medication.",                           cat: "Vocabulary" },
+    { kr: "물건.",         en: "A thing; stuff; goods.",                                cat: "Vocabulary", hanja: ["物","件"], hanjaEn: "thing + item" },
+    { kr: "생일.",         en: "A birthday.",                                           cat: "Vocabulary", hanja: ["生","日"], hanjaEn: "birth + day" },
+    { kr: "생신.",         en: "A birthday (honorific).",                               cat: "Vocabulary", hanja: ["生","辰"], hanjaEn: "birth + time" },
+    { kr: "약.",           en: "Medicine; drug; medication.",                           cat: "Vocabulary", hanja: ["藥"], hanjaEn: "medicine" },
     { kr: "사다.",         en: "To buy; to purchase.",                                  cat: "Vocabulary" },
     { kr: "~등.",          en: "And so on; et cetera.",                                 cat: "Grammar" },
   ],
   "2.7 B": [
     { kr: "갖다 주다.",    en: "To bring; to take.",                                    cat: "Vocabulary" },
-    { kr: "계산서.",       en: "A bill; a check; \"calculation paper\".",               cat: "Vocabulary" },
+    { kr: "계산서.",       en: "A bill; a check; \"calculation paper\".",               cat: "Vocabulary", hanja: ["計","算","書"], hanjaEn: "calculate + count + paper" },
     { kr: "김밥.",         en: "Korean sushi; \"seaweed rice\".",                       cat: "Food" },
     { kr: "김치.",         en: "Kimchi.",                                               cat: "Food" },
     { kr: "김치찌개.",     en: "Kimchi stew.",                                          cat: "Food" },
     { kr: "만두.",         en: "Dumpling; pot stickers.",                               cat: "Food" },
     { kr: "불고기.",       en: "Bulgogi; Korean style barbecued beef.",                  cat: "Food" },
     { kr: "비빔밥.",       en: "Bibimbap; rice mixed with vegetables and meat; \"mixed rice\".", cat: "Food" },
-    { kr: "반찬.",         en: "A side dish.",                                          cat: "Food" },
-    { kr: "음료수.",       en: "Beverages; drinks; \"drinking water\".",                cat: "Food" },
+    { kr: "반찬.",         en: "A side dish.",                                          cat: "Food", hanja: ["飯","饌"], hanjaEn: "rice + side dish" },
+    { kr: "음료수.",       en: "Beverages; drinks; \"drinking water\".",                cat: "Food", hanja: ["飮","料","水"], hanjaEn: "drink + material + water" },
     { kr: "맥주.",         en: "Beer.",                                                 cat: "Food" },
     { kr: "물.",           en: "Water.",                                                cat: "Food" },
     { kr: "음식.",         en: "Food.",                                                 cat: "Food" },
@@ -1178,40 +1237,40 @@ const LISTS = {
     { kr: "받다.",         en: "To receive; to take.",                                  cat: "Vocabulary" },
     { kr: "배가 고프다.",  en: "To be hungry; \"the stomach is hungry\".",              cat: "Vocabulary" },
     { kr: "시키다.",       en: "To order (food or drinks).",                            cat: "Vocabulary" },
-    { kr: "주문하다.",     en: "To order (food or drinks).",                            cat: "Vocabulary" },
+    { kr: "주문하다.",     en: "To order (food or drinks).",                            cat: "Vocabulary", hanja: ["注","文",null,null], hanjaEn: "pour + writing" },
     { kr: "주다.",         en: "To give.",                                              cat: "Vocabulary" },
     { kr: "드리다.",       en: "To give; to offer (honorific).",                        cat: "Vocabulary" },
-    { kr: "신용카드.",     en: "A credit card.",                                        cat: "Vocabulary" },
+    { kr: "신용카드.",     en: "A credit card.",                                        cat: "Vocabulary", hanja: ["信","用",null,null], hanjaEn: "trust + use + (card)" },
     { kr: "~병.",          en: "A counter for bottles.",                                cat: "Grammar" },
     { kr: "~인분.",        en: "A serving; \"person's portion\".",                      cat: "Grammar" },
     { kr: "~잔.",          en: "A counter for a glass or cup.",                         cat: "Grammar" },
   ],
   "2.7 C": [
     { kr: "손님.",         en: "A customer; a client.",                                 cat: "Vocabulary" },
-    { kr: "남자.",         en: "A man; a male.",                                        cat: "Vocabulary" },
-    { kr: "여자.",         en: "A woman; a female.",                                    cat: "Vocabulary" },
+    { kr: "남자.",         en: "A man; a male.",                                        cat: "Vocabulary", hanja: ["男","子"], hanjaEn: "male + person" },
+    { kr: "여자.",         en: "A woman; a female.",                                    cat: "Vocabulary", hanja: ["女","子"], hanjaEn: "female + person" },
     { kr: "짧다.",         en: "To be short. (adverb form: 짧게)",                     cat: "Descriptors" },
     { kr: "길다.",         en: "To be long. (adverb form: 길게)",                      cat: "Descriptors" },
     { kr: "마음에 들어요.",en: "To be likable; \"come to the mind\".",                  cat: "Expressions" },
     { kr: "어울리다.",     en: "To fit; to go well with; to suit.",                     cat: "Vocabulary" },
     { kr: "머리.",         en: "The head; hair.",                                       cat: "Vocabulary" },
-    { kr: "미용실.",       en: "Beauty salon.",                                         cat: "Vocabulary" },
+    { kr: "미용실.",       en: "Beauty salon.",                                         cat: "Vocabulary", hanja: ["美","容","室"], hanjaEn: "beauty + appearance + room" },
     { kr: "머리방.",       en: "Beauty salon.",                                         cat: "Vocabulary" },
     { kr: "샴푸.",         en: "A shampoo.",                                            cat: "Vocabulary" },
     { kr: "샴푸하다.",     en: "To shampoo.",                                           cat: "Vocabulary" },
-    { kr: "염색.",         en: "Dyeing.",                                               cat: "Vocabulary" },
-    { kr: "염색하다.",     en: "To dye.",                                               cat: "Vocabulary" },
+    { kr: "염색.",         en: "Dyeing.",                                               cat: "Vocabulary", hanja: ["染","色"], hanjaEn: "dye + color" },
+    { kr: "염색하다.",     en: "To dye.",                                               cat: "Vocabulary", hanja: ["染","色",null,null], hanjaEn: "dye + color" },
     { kr: "커트.",         en: "Cut (hair).",                                           cat: "Vocabulary" },
     { kr: "파마.",         en: "Perm.",                                                 cat: "Vocabulary" },
     { kr: "파마하다.",     en: "To have a perm.",                                       cat: "Vocabulary" },
     { kr: "자르다.",       en: "To cut.",                                               cat: "Vocabulary" },
     { kr: "어서 오세요.",  en: "Welcome; come on in.",                                  cat: "Expressions" },
-    { kr: "유행.",         en: "A fashion; popularity; a trend.",                       cat: "Vocabulary" },
+    { kr: "유행.",         en: "A fashion; popularity; a trend.",                       cat: "Vocabulary", hanja: ["流","行"], hanjaEn: "flow + travel" },
     { kr: "예쁘다.",       en: "To be pretty.",                                         cat: "Descriptors" },
-    { kr: "예약.",         en: "An appointment; a reservation.",                        cat: "Vocabulary" },
-    { kr: "예약하다.",     en: "To make an appointment; to make a reservation.",        cat: "Vocabulary" },
+    { kr: "예약.",         en: "An appointment; a reservation.",                        cat: "Vocabulary", hanja: ["豫","約"], hanjaEn: "prepare + promise" },
+    { kr: "예약하다.",     en: "To make an appointment; to make a reservation.",        cat: "Vocabulary", hanja: ["豫","約",null,null], hanjaEn: "prepare + promise" },
     { kr: "짙다.",         en: "To be dark; to be dense; to be rich (color/flavor).",  cat: "Descriptors" },
-    { kr: "갈색.",         en: "Brown (color).",                                        cat: "Vocabulary" },
+    { kr: "갈색.",         en: "Brown (color).",                                        cat: "Vocabulary", hanja: ["褐","色"], hanjaEn: "brown + color" },
     { kr: "주다.",         en: "To provide a service (auxiliary verb).",                cat: "Grammar", prefix: "-아/어" },
     { kr: "드리다.",       en: "To provide a service (auxiliary verb, honorific).",     cat: "Grammar", prefix: "-아/어" },
     { kr: "-을 까요?",     en: "Shall we~? (consonant-ending stem; vowel-ending drops 으 → -ㄹ까요?)", cat: "Grammar" },
@@ -1222,20 +1281,20 @@ const LISTS = {
   "2.8 A": [
     { kr: "거기.",         en: "There.",                                                cat: "Vocabulary" },
     { kr: "떠나다.",       en: "To leave (a place).",                                   cat: "Vocabulary" },
-    { kr: "출발.",         en: "Departure.",                                            cat: "Vocabulary" },
-    { kr: "출발하다.",     en: "To depart; to set out.",                                cat: "Vocabulary" },
-    { kr: "도착.",         en: "Arrival.",                                              cat: "Vocabulary" },
-    { kr: "도착하다.",     en: "To arrive.",                                            cat: "Vocabulary" },
+    { kr: "출발.",         en: "Departure.",                                            cat: "Vocabulary", hanja: ["出","發"], hanjaEn: "exit + depart" },
+    { kr: "출발하다.",     en: "To depart; to set out.",                                cat: "Vocabulary", hanja: ["出","發",null,null], hanjaEn: "exit + depart" },
+    { kr: "도착.",         en: "Arrival.",                                              cat: "Vocabulary", hanja: ["到","着"], hanjaEn: "arrive + settle" },
+    { kr: "도착하다.",     en: "To arrive.",                                            cat: "Vocabulary", hanja: ["到","着",null,null], hanjaEn: "arrive + settle" },
     { kr: "놀다.",         en: "To have fun; to play.",                                 cat: "Vocabulary" },
     { kr: "돌아다니다.",   en: "To go around; to walk around; to roam.",                cat: "Vocabulary" },
-    { kr: "운전.",         en: "Driving.",                                              cat: "Vocabulary" },
-    { kr: "운전하다.",     en: "To drive; to operate.",                                 cat: "Vocabulary" },
+    { kr: "운전.",         en: "Driving.",                                              cat: "Vocabulary", hanja: ["運","轉"], hanjaEn: "move + turn" },
+    { kr: "운전하다.",     en: "To drive; to operate.",                                 cat: "Vocabulary", hanja: ["運","轉",null,null], hanjaEn: "move + turn" },
     { kr: "막히다.",       en: "To be blocked; to be congested.",                       cat: "Vocabulary" },
     { kr: "피곤하다.",     en: "To be tired.",                                          cat: "Descriptors" },
     { kr: "춤추다.",       en: "To dance.",                                             cat: "Vocabulary" },
-    { kr: "한복.",         en: "Traditional Korean dress (Hanbok).",                    cat: "Vocabulary" },
-    { kr: "박물관.",       en: "A museum.",                                             cat: "Vocabulary" },
-    { kr: "선물.",         en: "A gift; a present.",                                    cat: "Vocabulary" },
+    { kr: "한복.",         en: "Traditional Korean dress (Hanbok).",                    cat: "Vocabulary", hanja: ["韓","服"], hanjaEn: "Korean + clothing" },
+    { kr: "박물관.",       en: "A museum.",                                             cat: "Vocabulary", hanja: ["博","物","館"], hanjaEn: "broad + things + hall" },
+    { kr: "선물.",         en: "A gift; a present.",                                    cat: "Vocabulary", hanja: ["膳","物"], hanjaEn: "gift + thing" },
     { kr: "아시아.",       en: "Asia.",                                                 cat: "Vocabulary" },
     { kr: "오래.",         en: "For a long time.",                                      cat: "Vocabulary" },
     { kr: "늦게.",         en: "Late (as in arrive late).",                             cat: "Vocabulary" },
@@ -1243,29 +1302,29 @@ const LISTS = {
   ],
   "2.8 B": [
     { kr: "날.",           en: "Day.",                                                  cat: "Vocabulary" },
-    { kr: "장교.",         en: "An officer.",                                           cat: "Military" },
-    { kr: "준위.",         en: "A warrant officer; \"deputy officer\".",                cat: "Military" },
-    { kr: "소위.",         en: "A second lieutenant; \"young officer\".",               cat: "Military" },
-    { kr: "중위.",         en: "A first lieutenant; \"middle officer\".",               cat: "Military" },
-    { kr: "대위.",         en: "A captain; \"big officer\".",                           cat: "Military" },
-    { kr: "소령.",         en: "A major; \"young governor\".",                          cat: "Military" },
-    { kr: "중령.",         en: "A lieutenant colonel; \"middle governor\".",            cat: "Military" },
-    { kr: "대령.",         en: "A colonel; \"big governor\".",                          cat: "Military" },
-    { kr: "장군.",         en: "A general; \"commander of military\".",                 cat: "Military" },
-    { kr: "준장.",         en: "A brigadier general; \"deputy commander\".",            cat: "Military" },
-    { kr: "소장.",         en: "A major general; \"young commander\".",                 cat: "Military" },
-    { kr: "중장.",         en: "A lieutenant general; \"middle commander\".",           cat: "Military" },
-    { kr: "대장.",         en: "A general; a four-star general; \"big commander\".",    cat: "Military" },
+    { kr: "장교.",         en: "An officer.",                                           cat: "Military", hanja: ["將","校"], hanjaEn: "commander + officer" },
+    { kr: "준위.",         en: "A warrant officer; \"deputy officer\".",                cat: "Military", hanja: ["准","尉"], hanjaEn: "deputy + officer" },
+    { kr: "소위.",         en: "A second lieutenant; \"young officer\".",               cat: "Military", hanja: ["少","尉"], hanjaEn: "young + officer" },
+    { kr: "중위.",         en: "A first lieutenant; \"middle officer\".",               cat: "Military", hanja: ["中","尉"], hanjaEn: "middle + officer" },
+    { kr: "대위.",         en: "A captain; \"big officer\".",                           cat: "Military", hanja: ["大","尉"], hanjaEn: "big + officer" },
+    { kr: "소령.",         en: "A major; \"young governor\".",                          cat: "Military", hanja: ["少","領"], hanjaEn: "young + governor" },
+    { kr: "중령.",         en: "A lieutenant colonel; \"middle governor\".",            cat: "Military", hanja: ["中","領"], hanjaEn: "middle + governor" },
+    { kr: "대령.",         en: "A colonel; \"big governor\".",                          cat: "Military", hanja: ["大","領"], hanjaEn: "big + governor" },
+    { kr: "장군.",         en: "A general; \"commander of military\".",                 cat: "Military", hanja: ["將","軍"], hanjaEn: "commander + military" },
+    { kr: "준장.",         en: "A brigadier general; \"deputy commander\".",            cat: "Military", hanja: ["准","將"], hanjaEn: "deputy + commander" },
+    { kr: "소장.",         en: "A major general; \"young commander\".",                 cat: "Military", hanja: ["少","將"], hanjaEn: "young + commander" },
+    { kr: "중장.",         en: "A lieutenant general; \"middle commander\".",           cat: "Military", hanja: ["中","將"], hanjaEn: "middle + commander" },
+    { kr: "대장.",         en: "A general; a four-star general; \"big commander\".",    cat: "Military", hanja: ["大","將"], hanjaEn: "big + commander" },
     { kr: "또.",           en: "Also.",                                                 cat: "Vocabulary" },
     { kr: "만들다.",       en: "To make.",                                              cat: "Vocabulary" },
     { kr: "모이다.",       en: "To get together.",                                      cat: "Vocabulary" },
     { kr: "즐겁다.",       en: "To be pleasant; to be delightful.",                     cat: "Descriptors" },
-    { kr: "진급.",         en: "Promotion.",                                            cat: "Vocabulary" },
-    { kr: "진급하다.",     en: "To get promoted.",                                      cat: "Vocabulary" },
+    { kr: "진급.",         en: "Promotion.",                                            cat: "Vocabulary", hanja: ["進","級"], hanjaEn: "advance + rank" },
+    { kr: "진급하다.",     en: "To get promoted.",                                      cat: "Vocabulary", hanja: ["進","級",null,null], hanjaEn: "advance + rank" },
     { kr: "처음.",         en: "The first time.",                                       cat: "Vocabulary" },
     { kr: "처음으로.",     en: "For the first time.",                                   cat: "Vocabulary" },
-    { kr: "축하.",         en: "Congratulations.",                                      cat: "Expressions" },
-    { kr: "축하하다.",     en: "To congratulate.",                                      cat: "Expressions" },
+    { kr: "축하.",         en: "Congratulations.",                                      cat: "Expressions", hanja: ["祝","賀"], hanjaEn: "pray + congratulate" },
+    { kr: "축하하다.",     en: "To congratulate.",                                      cat: "Expressions", hanja: ["祝","賀",null,null], hanjaEn: "pray + congratulate" },
     { kr: "파티.",         en: "Party.",                                                cat: "Vocabulary" },
     { kr: "파티하다.",     en: "To have a party.",                                      cat: "Vocabulary" },
     { kr: "술.",           en: "Alcohol; liquor.",                                      cat: "Vocabulary" },
@@ -1275,16 +1334,16 @@ const LISTS = {
   "2.8 C": [
     { kr: "그냥.",         en: "Just; without a particular reason.",                    cat: "Vocabulary" },
     { kr: "그래?",         en: "Really?; Is it so?",                                   cat: "Expressions" },
-    { kr: "기념품.",       en: "A souvenir; \"commemoration item\".",                   cat: "Vocabulary" },
+    { kr: "기념품.",       en: "A souvenir; \"commemoration item\".",                   cat: "Vocabulary", hanja: ["紀","念","品"], hanjaEn: "commemorate + remember + item" },
     { kr: "레스토랑.",     en: "A (fancy) restaurant.",                                 cat: "Vocabulary" },
-    { kr: "수족관.",       en: "An aquarium.",                                          cat: "Vocabulary" },
+    { kr: "수족관.",       en: "An aquarium.",                                          cat: "Vocabulary", hanja: ["水","族","館"], hanjaEn: "water + species + hall" },
     { kr: "바쁘다.",       en: "To be busy.",                                           cat: "Descriptors" },
-    { kr: "시험.",         en: "Test; exam.",                                           cat: "Vocabulary" },
-    { kr: "시험 보다.",    en: "To take a test.",                                       cat: "Vocabulary" },
+    { kr: "시험.",         en: "Test; exam.",                                           cat: "Vocabulary", hanja: ["試","驗"], hanjaEn: "test + examine" },
+    { kr: "시험 보다.",    en: "To take a test.",                                       cat: "Vocabulary", hanja: ["試","驗",null,null], hanjaEn: "test + examine" },
     { kr: "심심하다.",     en: "To be bored.",                                          cat: "Descriptors" },
     { kr: "집안일.",       en: "Housework; chores.",                                    cat: "Vocabulary" },
     { kr: "집안일하다.",   en: "To do housework.",                                      cat: "Vocabulary" },
-    { kr: "연휴.",         en: "A long weekend; consecutive holidays.",                 cat: "Vocabulary" },
+    { kr: "연휴.",         en: "A long weekend; consecutive holidays.",                 cat: "Vocabulary", hanja: ["連","休"], hanjaEn: "consecutive + rest" },
     { kr: "~동안.",        en: "During.",                                               cat: "Grammar" },
     { kr: "~만.",          en: "Only.",                                                 cat: "Grammar" },
     { kr: "하다.",         en: "Must; have to.",                                        cat: "Grammar", prefix: "-아/어야" },
@@ -1301,19 +1360,19 @@ const LISTS = {
     { kr: "남기다.",       en: "To leave (a message, food, etc.).",                   cat: "Vocabulary" },
     { kr: "바꾸다.",       en: "To put someone on the phone; to exchange; to replace.", cat: "Vocabulary" },
     { kr: "보내다.",       en: "To send.",                                             cat: "Vocabulary" },
-    { kr: "부탁.",         en: "A favor.",                                             cat: "Vocabulary" },
-    { kr: "부탁하다.",     en: "To ask a favor; to ask to put someone on the phone.", cat: "Vocabulary" },
-    { kr: "부탁 드리다.",  en: "To ask a favor; to ask to put someone on the phone (honorific).", cat: "Vocabulary" },
-    { kr: "전화를 걸다.",  en: "To make a phone call; \"to dial a phone\".",          cat: "Expressions" },
+    { kr: "부탁.",         en: "A favor.",                                             cat: "Vocabulary", hanja: ["付","託"], hanjaEn: "give + entrust" },
+    { kr: "부탁하다.",     en: "To ask a favor; to ask to put someone on the phone.", cat: "Vocabulary", hanja: ["付","託",null,null], hanjaEn: "give + entrust" },
+    { kr: "부탁 드리다.",  en: "To ask a favor; to ask to put someone on the phone (honorific).", cat: "Vocabulary", hanja: ["付","託",null,null,null], hanjaEn: "give + entrust" },
+    { kr: "전화를 걸다.",  en: "To make a phone call; \"to dial a phone\".",          cat: "Expressions", hanja: ["電","話",null,null,null], hanjaEn: "electric + speech" },
     { kr: "다시.",         en: "Again.",                                               cat: "Vocabulary" },
-    { kr: "문자.",         en: "Text.",                                                cat: "Vocabulary" },
-    { kr: "음성.",         en: "Voice.",                                               cat: "Vocabulary" },
+    { kr: "문자.",         en: "Text.",                                                cat: "Vocabulary", hanja: ["文","字"], hanjaEn: "writing + letter" },
+    { kr: "음성.",         en: "Voice.",                                               cat: "Vocabulary", hanja: ["音","聲"], hanjaEn: "sound + voice" },
     { kr: "메시지.",       en: "A message.",                                           cat: "Vocabulary" },
-    { kr: "통화 중.",      en: "On the phone; \"in the middle of a phone conversation\".", cat: "Expressions" },
+    { kr: "통화 중.",      en: "On the phone; \"in the middle of a phone conversation\".", cat: "Expressions", hanja: ["通","話","中"], hanjaEn: "communicate + speech + middle" },
     { kr: "핸드폰.",       en: "A cell phone; a mobile phone; \"hand phone\".",       cat: "Vocabulary" },
-    { kr: "휴대폰.",       en: "A cell phone; a mobile phone.",                       cat: "Vocabulary" },
-    { kr: "중학교.",       en: "A middle school.",                                    cat: "Vocabulary" },
-    { kr: "잠시만.",       en: "For a moment; for a second.",                         cat: "Vocabulary" },
+    { kr: "휴대폰.",       en: "A cell phone; a mobile phone.",                       cat: "Vocabulary", hanja: ["携","帶",null], hanjaEn: "carry + bring + (phone)" },
+    { kr: "중학교.",       en: "A middle school.",                                    cat: "Vocabulary", hanja: ["中","學","校"], hanjaEn: "middle + study + school" },
+    { kr: "잠시만.",       en: "For a moment; for a second.",                         cat: "Vocabulary", hanja: ["暫","時",null], hanjaEn: "moment + time" },
     { kr: "잠깐만.",       en: "For a moment; for a second.",                         cat: "Vocabulary" },
     { kr: "~의.",          en: "Possessive marker; 's.",                              cat: "Grammar" },
   ],
@@ -1321,13 +1380,13 @@ const LISTS = {
     { kr: "이틀.",         en: "Two days.",                                            cat: "Time" },
     { kr: "사흘.",         en: "Three days.",                                          cat: "Time" },
     { kr: "나흘.",         en: "Four days.",                                           cat: "Time" },
-    { kr: "특별하다.",     en: "To be special.",                                       cat: "Descriptors" },
-    { kr: "편하다.",       en: "To be convenient; to be comfortable.",                 cat: "Descriptors" },
+    { kr: "특별하다.",     en: "To be special.",                                       cat: "Descriptors", hanja: ["特","別",null,null], hanjaEn: "special + different" },
+    { kr: "편하다.",       en: "To be convenient; to be comfortable.",                 cat: "Descriptors", hanja: ["便",null,null], hanjaEn: "convenient" },
     { kr: "힘들다.",       en: "To be difficult; to be challenging.",                  cat: "Descriptors" },
-    { kr: "비행기.",       en: "An airplane.",                                         cat: "Vocabulary" },
+    { kr: "비행기.",       en: "An airplane.",                                         cat: "Vocabulary", hanja: ["飛","行","機"], hanjaEn: "fly + travel + machine" },
     { kr: "표.",           en: "A ticket.",                                            cat: "Vocabulary" },
     { kr: "아직.",         en: "(Not) yet; still.",                                    cat: "Vocabulary" },
-    { kr: "방학.",         en: "A school break.",                                      cat: "Vocabulary" },
+    { kr: "방학.",         en: "A school break.",                                      cat: "Vocabulary", hanja: ["放","學"], hanjaEn: "release + school" },
     { kr: "#박#일.",       en: "~ nights ~ days (counter pattern, e.g. 3박 4일 = three nights four days).", cat: "Grammar" },
     { kr: "~때.",          en: "Time; when.",                                          cat: "Grammar" },
     { kr: "-을 거다.",     en: "To be going to— (consonant-ending stem; vowel-ending drops 으 → -ㄹ 거다).", cat: "Grammar" },
@@ -1345,10 +1404,10 @@ const LISTS = {
     { kr: "노래 부르다.",  en: "To sing a song (more natural spoken form).",           cat: "Vocabulary" },
     { kr: "머무르다.",     en: "To stay; to lodge.",                                   cat: "Vocabulary" },
     { kr: "머물다.",       en: "To stay; to lodge.",                                   cat: "Vocabulary" },
-    { kr: "초대.",         en: "An invitation.",                                       cat: "Vocabulary" },
-    { kr: "초대하다.",     en: "To invite.",                                           cat: "Vocabulary" },
+    { kr: "초대.",         en: "An invitation.",                                       cat: "Vocabulary", hanja: ["招","待"], hanjaEn: "invite + receive" },
+    { kr: "초대하다.",     en: "To invite.",                                           cat: "Vocabulary", hanja: ["招","待",null,null], hanjaEn: "invite + receive" },
     { kr: "잔치.",         en: "A feast; a party; a banquet.",                         cat: "Vocabulary" },
-    { kr: "친척.",         en: "A relative.",                                          cat: "Vocabulary" },
+    { kr: "친척.",         en: "A relative.",                                          cat: "Vocabulary", hanja: ["親","戚"], hanjaEn: "kin + relative" },
     { kr: "환갑.",         en: "The 60th birthday.",                                   cat: "Vocabulary", hanja: ["還","甲"] },
     { kr: "회갑.",         en: "The 60th birthday.",                                   cat: "Vocabulary", hanja: ["回","甲"] },
     { kr: "아마.",         en: "Probably; maybe; perhaps.",                            cat: "Vocabulary" },
@@ -1530,6 +1589,103 @@ const LISTS = {
     { kr: "-지만.",        en: "But (clause connector).",                              cat: "Grammar" },
     { kr: "-지 못하다.",   en: "Cannot (stronger, external inability).",               cat: "Grammar" },
     { kr: "-지 않다.",     en: "Do not; does not (plain negation).",                   cat: "Grammar" },
+  ],
+  "3.12 A": [
+    { kr: "귀걸이.",       en: "An earring; \"ear hanger\".",                           cat: "Accessories" },
+    { kr: "목걸이.",       en: "A necklace; \"neck hanger\".",                          cat: "Accessories" },
+    { kr: "반지.",         en: "A (finger) ring.",                                     cat: "Accessories" },
+    { kr: "팔찌.",         en: "A bracelet.",                                          cat: "Accessories" },
+    { kr: "지갑.",         en: "A wallet; a purse.",                                   cat: "Accessories" },
+    { kr: "벨트.",         en: "A belt.",                                              cat: "Accessories" },
+    { kr: "핸드백.",       en: "A handbag.",                                           cat: "Accessories" },
+    { kr: "편지.",         en: "A letter.",                                            cat: "Vocabulary", hanja: ["便","紙"], hanjaEn: "convey + paper" },
+    { kr: "소포.",         en: "A parcel; a package.",                                 cat: "Vocabulary" },
+    { kr: "엽서.",         en: "A postcard.",                                          cat: "Vocabulary", hanja: ["葉","書"], hanjaEn: "leaf + writing" },
+    { kr: "우표.",         en: "A postage stamp.",                                     cat: "Vocabulary", hanja: ["郵","票"], hanjaEn: "post + ticket" },
+    { kr: "점원.",         en: "A store clerk.",                                       cat: "Vocabulary", hanja: ["店","員"], hanjaEn: "shop + member" },
+    { kr: "주인.",         en: "An owner.",                                            cat: "Vocabulary", hanja: ["主","人"], hanjaEn: "main + person" },
+    { kr: "포장.",         en: "Wrapping; packing.",                                   cat: "Vocabulary", hanja: ["包","裝"], hanjaEn: "wrap + adorn" },
+    { kr: "포장하다.",     en: "To wrap; to pack.",                                    cat: "Vocabulary", hanja: ["包","裝",null,null], hanjaEn: "wrap + adorn" },
+    { kr: "친절.",         en: "Kindness.",                                            cat: "Vocabulary", hanja: ["親","切"], hanjaEn: "close + cut (through)" },
+    { kr: "친절하다.",     en: "To be kind; to be friendly.",                          cat: "Descriptors", hanja: ["親","切",null,null], hanjaEn: "close + cut (through)" },
+    { kr: "깎다.",         en: "To cut (price); to discount; to bargain.",             cat: "Vocabulary" },
+    { kr: "부치다.",       en: "To mail.",                                             cat: "Vocabulary" },
+    { kr: "~불.",          en: "A counter for dollars.",                               cat: "Grammar" },
+    { kr: "센트.",         en: "A cent.",                                              cat: "Vocabulary" },
+    { kr: "원래.",         en: "Originally.",                                          cat: "Vocabulary" },
+    { kr: "~장.",          en: "A counter for sheets (of paper, cloth, postcards, etc.).", cat: "Grammar" },
+    { kr: "-게.",          en: "Adverb marker; -ly.",                                  cat: "Grammar" },
+  ],
+  "3.12 B": [
+    { kr: "입다.",         en: "To put on; to wear (clothing).",                       cat: "Vocabulary" },
+    { kr: "블라우스.",     en: "A blouse.",                                            cat: "Clothing" },
+    { kr: "바지.",         en: "Pants; trousers.",                                     cat: "Clothing" },
+    { kr: "스웨터.",       en: "A sweater.",                                           cat: "Clothing" },
+    { kr: "스커트.",       en: "A skirt.",                                             cat: "Clothing" },
+    { kr: "양복.",         en: "A suit (western style for men).",                      cat: "Clothing",   hanja: ["洋","服"], hanjaEn: "western + clothes" },
+    { kr: "와이셔츠.",     en: "A dress shirt.",                                       cat: "Clothing" },
+    { kr: "원피스.",       en: "A one-piece dress.",                                   cat: "Clothing" },
+    { kr: "잠바.",         en: "A windbreaker.",                                       cat: "Clothing" },
+    { kr: "재킷.",         en: "A jacket.",                                            cat: "Clothing" },
+    { kr: "청바지.",       en: "Blue jeans.",                                          cat: "Clothing" },
+    { kr: "치마.",         en: "A skirt.",                                             cat: "Clothing" },
+    { kr: "코트.",         en: "A coat.",                                              cat: "Clothing" },
+    { kr: "투피스.",       en: "A two-piece dress or suit.",                           cat: "Clothing" },
+    { kr: "티셔츠.",       en: "A T-shirt.",                                           cat: "Clothing" },
+    { kr: "끼다.",         en: "To put on; to wear (snug-fitting items such as rings or gloves).", cat: "Vocabulary" },
+    { kr: "장갑.",         en: "Gloves.",                                              cat: "Clothing", hanja: ["掌","匣"], hanjaEn: "palm + box" },
+    { kr: "선글라스.",     en: "Sunglasses.",                                          cat: "Clothing" },
+    { kr: "안경.",         en: "Eyeglasses.",                                          cat: "Clothing",   hanja: ["眼","鏡"], hanjaEn: "eye + mirror" },
+    { kr: "매다.",         en: "To put on; to wear (items worn by tying).",            cat: "Vocabulary" },
+    { kr: "넥타이.",       en: "A necktie.",                                           cat: "Clothing" },
+    { kr: "스카프.",       en: "A scarf.",                                             cat: "Clothing" },
+    { kr: "쓰다.",         en: "To put on; to wear (items covering the head or face).", cat: "Vocabulary" },
+    { kr: "모자.",         en: "A hat; a cap.",                                        cat: "Clothing" },
+    { kr: "신다.",         en: "To put on; to wear (footwear).",                       cat: "Vocabulary" },
+    { kr: "구두.",         en: "Formal shoes.",                                        cat: "Clothing" },
+    { kr: "신발.",         en: "Footwear; shoes.",                                     cat: "Clothing" },
+    { kr: "양말.",         en: "Socks.",                                               cat: "Clothing" },
+    { kr: "운동화.",       en: "Athletic shoes; sneakers.",                            cat: "Clothing",   hanja: ["運","動",null], hanjaEn: "move + action + (shoe)" },
+    { kr: "스타킹.",       en: "Stockings.",                                           cat: "Clothing" },
+    { kr: "차다.",         en: "To put on; to wear (items fastened to the body).",     cat: "Vocabulary" },
+    { kr: "시계.",         en: "A wristwatch; a clock.",                               cat: "Vocabulary", hanja: ["時","計"], hanjaEn: "time + count" },
+    { kr: "보여주다.",     en: "To show; to display.",                                 cat: "Vocabulary" },
+    { kr: "고르다.",       en: "To select; to choose.",                                cat: "Vocabulary" },
+    { kr: "맞다.",         en: "To fit; to suit; to be correct.",                      cat: "Vocabulary" },
+    { kr: "찾다.",         en: "To look for; to find.",                                cat: "Vocabulary" },
+    { kr: "인기.",         en: "Popularity.",                                          cat: "Vocabulary", hanja: ["人","氣"], hanjaEn: "person + spirit" },
+    { kr: "사이즈.",       en: "Size.",                                                cat: "Vocabulary" },
+    { kr: "회색.",         en: "Gray (color).",                                        cat: "Vocabulary", hanja: ["灰","色"], hanjaEn: "ash + color" },
+    { kr: "-아/어도 되다.", en: "May; it is all right if (permission).",               cat: "Grammar" },
+    { kr: "-(으)면 안되다.", en: "Should not; must not (prohibition).",                cat: "Grammar" },
+    { kr: "그럼(요).",     en: "Of course.",                                           cat: "Expressions" },
+  ],
+  "3.12 C": [
+    { kr: "식품.",         en: "Groceries; food items.",                               cat: "Food", hanja: ["食","品"], hanjaEn: "eat + item" },
+    { kr: "식품점.",       en: "A grocery store.",                                     cat: "Food",       hanja: ["食","品","店"], hanjaEn: "eat + item + shop" },
+    { kr: "계산.",         en: "Calculation; computation; counting.",                  cat: "Vocabulary", hanja: ["計","算"], hanjaEn: "calculate + count" },
+    { kr: "계산하다.",     en: "To calculate; to compute; to count.",                  cat: "Vocabulary", hanja: ["計","算",null,null], hanjaEn: "calculate + count" },
+    { kr: "계산대.",       en: "A checkout counter.",                                  cat: "Vocabulary", hanja: ["計","算","臺"], hanjaEn: "calculate + count + stand" },
+    { kr: "팔다.",         en: "To sell.",                                             cat: "Vocabulary" },
+    { kr: "거스름돈.",     en: "Change; \"changed money\".",                           cat: "Vocabulary" },
+    { kr: "고기.",         en: "Meat.",                                                cat: "Food" },
+    { kr: "돼지.",         en: "A pig.",                                               cat: "Food" },
+    { kr: "닭.",           en: "A chicken.",                                           cat: "Food" },
+    { kr: "소.",           en: "A cow.",                                               cat: "Food" },
+    { kr: "간장.",         en: "Soy sauce.",                                           cat: "Food", hanja: ["間","醬"], hanjaEn: "soy + paste" },
+    { kr: "고추장.",       en: "Red pepper paste.",                                    cat: "Food" },
+    { kr: "된장.",         en: "Soybean paste.",                                       cat: "Food" },
+    { kr: "과일.",         en: "Fruit.",                                               cat: "Food" },
+    { kr: "딸기.",         en: "A strawberry.",                                        cat: "Food" },
+    { kr: "사과.",         en: "An apple.",                                            cat: "Food" },
+    { kr: "포도.",         en: "A grape.",                                             cat: "Food" },
+    { kr: "양념.",         en: "Seasonings; spices.",                                  cat: "Food" },
+    { kr: "설탕.",         en: "Sugar.",                                               cat: "Food",       hanja: ["雪","糖"], hanjaEn: "snow + sugar" },
+    { kr: "식초.",         en: "Vinegar.",                                             cat: "Food",       hanja: ["食","醋"], hanjaEn: "eat + sour" },
+    { kr: "후추.",         en: "Black pepper.",                                        cat: "Food" },
+    { kr: "생선.",         en: "Fish (for eating).",                                   cat: "Food" },
+    { kr: "싱싱하다.",     en: "To be fresh (of food).",                               cat: "Descriptors" },
+    { kr: "-데.",          en: "A place; a spot.",                                     cat: "Grammar" },
   ],
 };
 
@@ -3044,6 +3200,98 @@ function toggleTheme() {
   isDarkMode = !isDarkMode;
   applyTheme();
 }
+
+// ── Vocab search ──────────────────────────────────────────────────────────────
+
+const ALL_PHRASES = Object.entries(LISTS).flatMap(([listName, phrases]) =>
+  phrases.map(p => ({ ...p, __list: listName }))
+);
+
+function onVocabSearch(query) {
+  const clearBtn  = document.getElementById('searchClearBtn');
+  const resultsEl = document.getElementById('searchResults');
+  if (clearBtn) clearBtn.style.display = query.length ? 'block' : 'none';
+
+  if (!query.trim()) {
+    resultsEl.style.display = 'none';
+    return;
+  }
+
+  const q = query.trim().toLowerCase();
+  const matches = ALL_PHRASES.filter(p => {
+    const kr = p.kr.replace(/[.?!,\xb7~+\-\/#]/g, '').toLowerCase();
+    const en = p.en.toLowerCase();
+    return kr.includes(q) || en.includes(q);
+  }).slice(0, 12);
+
+  resultsEl.style.display = 'block';
+
+  if (!matches.length) {
+    resultsEl.innerHTML = '<div class="search-no-results">No results</div>';
+    return;
+  }
+
+  resultsEl.innerHTML = matches.map(p => {
+    const kr   = p.kr.replace(/\./g, '');
+    const en   = p.en.length > 50 ? p.en.slice(0, 47) + '\u2026' : p.en;
+    const list = p.__list;
+    const esc  = list.replace(/'/g, "\\'");
+    return '<div class="search-result-item" onclick="jumpToList(\'' + esc + '\')">' +
+      '<div class="search-result-kr">' + kr + '</div>' +
+      '<div class="search-result-en">' + en + '</div>' +
+      '<div class="search-result-list">' + list + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function onVocabSearchBlur() {}
+
+function clearVocabSearch() {
+  const input     = document.getElementById('vocabSearch');
+  const clearBtn  = document.getElementById('searchClearBtn');
+  const resultsEl = document.getElementById('searchResults');
+  if (input)    input.value = '';
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (resultsEl) resultsEl.style.display = 'none';
+}
+
+function jumpToList(listName) {
+  // Add to selected lists first, before any rendering
+  selectedLists.add(listName);
+
+  clearVocabSearch();
+
+  const spaceIdx = listName.lastIndexOf(' ');
+  const chapter  = listName.slice(0, spaceIdx);
+  openChapters.clear();
+  openChapters.add(chapter);
+  renderListSelector();
+  renderSelectedChipsBar();
+
+  // Defer content render one tick so DOM is settled after clearVocabSearch
+  setTimeout(() => {
+    if (mode === 'study')          renderStudy();
+    else if (mode === 'quiz')      startQuiz();
+    else if (mode === 'pronounce') startPronounce();
+  }, 0);
+
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.scrollTop = 0;
+
+  setTimeout(() => {
+    document.querySelectorAll('.chapter-tab').forEach(t => {
+      if (t.textContent.trim() === chapter) {
+        t.style.transition = 'background 0.15s';
+        t.style.background = 'var(--blue-light)';
+        setTimeout(() => t.style.background = '', 500);
+      }
+    });
+  }, 50);
+}
+
+// ── Vocab search ──────────────────────────────────────────────────────────────
+
+// Flatten all phrases once for fast searching
 
 // Returns Hanja gloss HTML — the English breakdown shown next to the English
 // translation. The Hanja characters themselves are now shown per-block in
