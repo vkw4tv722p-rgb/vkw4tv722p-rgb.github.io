@@ -2081,6 +2081,7 @@ const LISTS = {
     { kr: "주소.",         en: "An address.",                                          cat: "Vocabulary", hanja: ["住","所"], hanjaEn: "reside + place" },
     { kr: "티켓.",         en: "A ticket.",                                            cat: "Vocabulary" },
     { kr: "홈페이지.",     en: "A homepage.",                                          cat: "Vocabulary" },
+    { kr: "방법.",         en: "A method; a way.",                                     cat: "Vocabulary", hanja: ["方","法"], hanjaEn: "direction + law" },
     { kr: "~개월.",        en: "Counter for months.",                                  cat: "Grammar",    hanja: ["個","月"], hanjaEn: "each + moon" },
   ],
   "5.17 C": [
