@@ -2424,6 +2424,75 @@ const STORIES = {
   }
 };
 
+// ── QUIZ STATE PERSISTENCE ────────────────────────────────────────────────
+const QUIZ_SAVE_KEY = 'korean-game-quiz-save';
+
+function saveQuizState() {
+  if (mode !== 'quiz' || quizQueue.length === 0) return;
+  try {
+    const save = {
+      selectedLists: [...selectedLists],
+      quizQueue,
+      quizIndex,
+      quizScore,
+      // phraseStatus: Map → array of [kr, {status}] pairs (omit full phrase object — we rebuild from LISTS)
+      phraseStatus: [...phraseStatus.entries()].map(([kr, v]) => [kr, v.status]),
+      currentRoundKeys: [...currentRoundKeys],
+      savedAt: Date.now(),
+    };
+    localStorage.setItem(QUIZ_SAVE_KEY, JSON.stringify(save));
+  } catch(e) { /* ignore quota errors */ }
+}
+
+function clearQuizSave() {
+  try { localStorage.removeItem(QUIZ_SAVE_KEY); } catch(e) {}
+}
+
+function loadQuizSave() {
+  try {
+    const raw = localStorage.getItem(QUIZ_SAVE_KEY);
+    if (!raw) return null;
+    const save = JSON.parse(raw);
+    // Validate — must have lists that still exist
+    if (!save.selectedLists || !save.quizQueue || save.quizIndex == null) return null;
+    const validLists = save.selectedLists.filter(l => LISTS[l]);
+    if (validLists.length === 0) return null;
+    return save;
+  } catch(e) { return null; }
+}
+
+function restoreQuizState(save) {
+  // Rebuild selectedLists
+  selectedLists = new Set(save.selectedLists.filter(l => LISTS[l]));
+  renderListSelector();
+  renderSelectedChipsBar();
+
+  // Rebuild phrase array in same order
+  const phrases = getActivePhrases();
+  if (phrases.length === 0) { clearQuizSave(); startQuiz(); return; }
+
+  // Rebuild phraseStatus map
+  const krToPhrase = new Map(phrases.map(p => [p.kr, p]));
+  phraseStatus = new Map();
+  (save.phraseStatus || []).forEach(([kr, status]) => {
+    const phrase = krToPhrase.get(kr);
+    if (phrase) phraseStatus.set(kr, { phrase, status });
+  });
+
+  currentQuizPhrases = phrases;
+  currentRoundKeys   = new Set(save.currentRoundKeys || []);
+  quizQueue          = save.quizQueue;
+  quizIndex          = save.quizIndex;
+  quizScore          = save.quizScore || 0;
+  quizResults        = [];
+  submissionLocked   = false;
+  srsRecordedThisQuestion = false;
+
+  switchMode('quiz');
+  document.getElementById('scoreDisplay').textContent = `★ ${quizScore}`;
+  renderQuiz(phrases);
+}
+
 // ── GLOBAL STATE ──────────────────────────────────────────────────────────
 let mode         = 'study';
 let selectedLists = new Set();
@@ -2885,6 +2954,7 @@ function startQuiz() {
     document.getElementById('mainArea').innerHTML = `<div style="text-align:center;padding:60px 0;color:#bbb;font-size:15px;letter-spacing:1px;">Select a set to begin.</div>`;
     return;
   }
+  clearQuizSave();
   currentQuizPhrases = phrases;
   currentRoundKeys   = new Set(phrases.map(p => p.kr));
   quizQueue     = shuffle(phrases.map((_, i) => i));
@@ -3010,7 +3080,7 @@ function renderQuiz(phrases) {
   attachInput();
 }
 
-function advanceQuiz() { quizIndex++; renderQuiz(); }
+function advanceQuiz() { quizIndex++; saveQuizState(); renderQuiz(); }
 
 function skipQuiz() {
   const phrase = currentPhrase;
@@ -3020,6 +3090,7 @@ function skipQuiz() {
 
 // ── END SCREEN ────────────────────────────────────────────────────────────
 function renderEndScreen() {
+  clearQuizSave();
   const total     = quizQueue.length;
   const pct       = Math.round((quizScore / total) * 100);
   const stampText = pct === 100 ? '만점!' : pct >= 70 ? '잘했어요' : '다시 해봐요';
@@ -4530,6 +4601,9 @@ function nextMaskPass() {
 }
 
 
+// Save quiz state when leaving the page
+window.addEventListener('beforeunload', () => { if (mode === 'quiz') saveQuizState(); });
+
 document.addEventListener('DOMContentLoaded', () => {
   // Default to system preference if available
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -4537,8 +4611,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   applyTheme();
   renderListSelector();
-  renderStudy();
   refreshReviewBadge();
+
+  // Check for a saved quiz session to resume
+  const save = loadQuizSave();
+  if (save) {
+    const elapsed = Math.round((Date.now() - (save.savedAt || 0)) / 60000);
+    const timeStr = elapsed < 2 ? 'just now' : elapsed < 60 ? `${elapsed} min ago` : `${Math.round(elapsed/60)} hr ago`;
+    const remaining = save.quizQueue.length - save.quizIndex;
+    document.getElementById('mainArea').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px;text-align:center;">
+        <div style="font-size:32px">📖</div>
+        <div style="font-size:15px;color:var(--text);font-weight:600;">Resume quiz?</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+          You were on question ${save.quizIndex + 1} of ${save.quizQueue.length}<br>
+          (${remaining} left · saved ${timeStr})
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+          <button onclick="(function(){const s=loadQuizSave();if(s)restoreQuizState(s);})()"
+            style="padding:10px 22px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">
+            Resume ↩
+          </button>
+          <button onclick="clearQuizSave();renderStudy();"
+            style="padding:10px 22px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;">
+            Start fresh
+          </button>
+        </div>
+      </div>`;
+  } else {
+    renderStudy();
+  }
 
   // Collapse the chip picker when user taps/clicks anywhere in the content column
   document.getElementById('contentCol')?.addEventListener('click', () => {
