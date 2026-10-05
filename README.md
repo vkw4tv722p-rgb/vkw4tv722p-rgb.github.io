@@ -2256,8 +2256,8 @@ const LISTS = {
     { kr: "저렇다.",       en: "To be like that (distant).",                           cat: "Vocabulary" },
     { kr: "언제든지.",     en: "Anytime; whenever.",                                   cat: "Vocabulary" },
     { kr: "참.",           en: "Really; truly.",                                       cat: "Vocabulary" },
-    { kr: "-(으)ㄴ 적이 있다.", en: "To have done (something) before; past experience.", cat: "Grammar" },
-    { kr: "-(으)ㄴ 적이 없다.", en: "To have never done (something); no past experience.", cat: "Grammar" },
+    { kr: "은 적이 있다.", en: "To have done (something) before; past experience.", cat: "Grammar", prefix: "-(으)ㄴ" },
+    { kr: "은 적이 없다.", en: "To have never done (something); no past experience.", cat: "Grammar", prefix: "-(으)ㄴ" },
   ],
   "5.19 C": [
     { kr: "동호회.",       en: "A club.",                                              cat: "Vocabulary", hanja: ["同","好","會"], hanjaEn: "same + like + meeting" },
