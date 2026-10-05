@@ -2381,6 +2381,345 @@ const LISTS = {
     { kr: "-다가.",        en: "While (doing something); in the middle of.",           cat: "Grammar" },
     { kr: "-ㄹ 뻔하다.",   en: "Almost (did something); nearly (did something).",     cat: "Grammar" },
   ],
+
+  // ── UNIT 6 ────────────────────────────────────────────────────────────────
+
+  "6.21 A": [
+    { kr: "이사.",         en: "Moving (to a new place).",                             cat: "Vocabulary",  hanja: ["移","徙"],         hanjaEn: "move + migrate" },
+    { kr: "이사하다.",     en: "To move (to a new place).",                            cat: "Vocabulary",  hanja: ["移","徙",null,null], hanjaEn: "move + migrate" },
+    { kr: "밝다.",         en: "To be bright.",                                        cat: "Descriptors" },
+    { kr: "어둡다.",       en: "To be dark.",                                          cat: "Descriptors" },
+    { kr: "고층.",         en: "A high-rise; higher stories; a high floor.",           cat: "Vocabulary",  hanja: ["高","層"],         hanjaEn: "high + floor/layer" },
+    { kr: "단지.",         en: "A housing district; a (housing) development.",         cat: "Vocabulary",  hanja: ["團","地"],         hanjaEn: "group + land" },
+    { kr: "상가.",         en: "A shopping district; a commercial quarter.",           cat: "Vocabulary",  hanja: ["商","街"],         hanjaEn: "commerce + street" },
+    { kr: "편의시설.",     en: "Convenience facilities.",                              cat: "Vocabulary",  hanja: ["便","宜","施","設"], hanjaEn: "convenience + facilities" },
+    { kr: "단독주택.",     en: "A single-family home.",                                cat: "Vocabulary",  hanja: ["單","獨","住","宅"], hanjaEn: "single + independent + dwelling + house" },
+    { kr: "새.",           en: "New (pre-noun modifier; used before a noun).",         cat: "Vocabulary" },
+    { kr: "바닥.",         en: "A floor; a bottom.",                                   cat: "Vocabulary" },
+    { kr: "마루.",         en: "A wooden floor.",                                      cat: "Vocabulary" },
+    { kr: "온돌.",         en: "A heated floor; Korean under-floor heating.",          cat: "Vocabulary",  hanja: ["溫","突"],         hanjaEn: "warm + protrude" },
+    { kr: "천장.",         en: "A ceiling.",                                           cat: "Vocabulary",  hanja: ["天","障"],         hanjaEn: "sky + barrier" },
+    { kr: "안방.",         en: "A master bedroom.",                                    cat: "Vocabulary",  hanja: ["安","房"],         hanjaEn: "peaceful + room" },
+    { kr: "정원.",         en: "A garden.",                                            cat: "Vocabulary",  hanja: ["庭","園"],         hanjaEn: "yard + garden" },
+    { kr: "담장.",         en: "A fence; a wall around a house or yard.",             cat: "Vocabulary",  hanja: [null,"牆"],         hanjaEn: "wall" },
+    { kr: "다용도실.",     en: "A multipurpose room.",                                 cat: "Vocabulary",  hanja: ["多","用","途","室"], hanjaEn: "many + use + path + room" },
+    { kr: "베란다.",       en: "A veranda (outdoor space where upper floor overhangs lower).", cat: "Vocabulary" },
+    { kr: "발코니.",       en: "A balcony (uniform extension off the exterior wall).", cat: "Vocabulary" },
+    { kr: "벽.",           en: "A wall; a partition.",                                 cat: "Vocabulary",  hanja: ["壁"],             hanjaEn: "wall" },
+    { kr: "지붕.",         en: "A roof.",                                              cat: "Vocabulary" },
+    { kr: "현관.",         en: "The main entrance; the front door.",                   cat: "Vocabulary",  hanja: ["玄","關"],         hanjaEn: "dark/mysterious + gateway" },
+    { kr: "멀리.",         en: "Far away; at a distance.",                             cat: "Vocabulary" },
+    { kr: "특히.",         en: "Especially; particularly.",                            cat: "Vocabulary",  hanja: ["特","히"],         hanjaEn: "special" },
+  ],
+
+  "6.21 B": [
+    { kr: "부동산.",       en: "A real estate agency.",                                cat: "Vocabulary",  hanja: ["不","動","産"],     hanjaEn: "not + move + property" },
+    { kr: "공인중개사.",   en: "A realtor; a real estate agent.",                      cat: "Vocabulary",  hanja: ["公","認","仲","介","士"], hanjaEn: "public + recognized + middle + introduce + person" },
+    { kr: "지역.",         en: "An area; a zone; a district.",                         cat: "Vocabulary",  hanja: ["地","域"],         hanjaEn: "land + region" },
+    { kr: "환경.",         en: "An environment; surroundings.",                        cat: "Vocabulary",  hanja: ["環","境"],         hanjaEn: "ring/cycle + boundary" },
+    { kr: "공기.",         en: "Air.",                                                 cat: "Vocabulary",  hanja: ["空","氣"],         hanjaEn: "empty + energy/air" },
+    { kr: "전망.",         en: "A view; a prospect.",                                  cat: "Vocabulary",  hanja: ["展","望"],         hanjaEn: "expand + look/hope" },
+    { kr: "구하다.",       en: "To look for; to seek.",                                cat: "Vocabulary" },
+    { kr: "계약.",         en: "A contract.",                                          cat: "Vocabulary",  hanja: ["契","約"],         hanjaEn: "contract + promise" },
+    { kr: "계약하다.",     en: "To sign a contract; to contract.",                     cat: "Vocabulary",  hanja: ["契","約",null,null], hanjaEn: "contract + promise" },
+    { kr: "계약금.",       en: "A deposit; a contract fee.",                           cat: "Vocabulary",  hanja: ["契","約","金"],     hanjaEn: "contract + promise + gold/money" },
+    { kr: "보증금.",       en: "A security deposit.",                                  cat: "Vocabulary",  hanja: ["保","證","金"],     hanjaEn: "protect + prove + money" },
+    { kr: "전세.",         en: "A lease on a large lump-sum deposit (no monthly rent).", cat: "Vocabulary", hanja: ["傳","貰"],         hanjaEn: "pass + rent" },
+    { kr: "월세.",         en: "A lease on a monthly rent payment.",                   cat: "Vocabulary",  hanja: ["月","貰"],         hanjaEn: "month + rent" },
+    { kr: "낮다.",         en: "To be low.",                                           cat: "Descriptors" },
+    { kr: "꽤.",           en: "Quite; fairly; much.",                                 cat: "Vocabulary" },
+    { kr: "평.",           en: "(counter for area; one 평 ≈ 3.3 m²).",                cat: "Vocabulary",  hanja: ["坪"],             hanjaEn: "unit of area" },
+    { kr: "나머지.",       en: "The rest; the remainder.",                              cat: "Vocabulary" },
+    { kr: "한꺼번에.",     en: "All at once; all at the same time.",                   cat: "Vocabulary" },
+    { kr: "나중에.",       en: "Later; afterwards.",                                   cat: "Vocabulary" },
+    { kr: "-(으)려고 하다.", en: "To intend to (do something); to plan to (do something).", cat: "Grammar" },
+    { kr: "-ㄴ/는 편이다.", en: "To tend to (be/do); to be on the side of (being/doing).", cat: "Grammar" },
+  ],
+
+  "6.21 C": [
+    { kr: "이삿짐.",       en: "Moving items; belongings for a move.",                 cat: "Vocabulary" },
+    { kr: "이삿짐 센터.",  en: "A moving company.",                                    cat: "Vocabulary" },
+    { kr: "광고.",         en: "An advertisement; an ad.",                             cat: "Vocabulary",  hanja: ["廣","告"],         hanjaEn: "wide + announce" },
+    { kr: "정하다.",       en: "To decide; to determine; to set.",                     cat: "Vocabulary" },
+    { kr: "알리다.",       en: "To inform; to notify; to let (someone) know.",         cat: "Vocabulary" },
+    { kr: "정리.",         en: "Arrangement; organizing; tidying up.",                 cat: "Vocabulary",  hanja: ["整","理"],         hanjaEn: "orderly + manage" },
+    { kr: "정리하다.",     en: "To arrange; to organize; to tidy up.",                 cat: "Vocabulary",  hanja: ["整","理",null,null], hanjaEn: "orderly + manage" },
+    { kr: "정리되다.",     en: "To be arranged; to be organized; to be tidied up.",   cat: "Vocabulary",  hanja: ["整","理",null,null], hanjaEn: "orderly + manage" },
+    { kr: "신청.",         en: "An application; a request.",                           cat: "Vocabulary",  hanja: ["申","請"],         hanjaEn: "report + request" },
+    { kr: "신청하다.",     en: "To apply; to request.",                                cat: "Vocabulary",  hanja: ["申","請",null,null], hanjaEn: "report + request" },
+    { kr: "싸다.",         en: "To wrap; to pack (items).",                            cat: "Vocabulary" },
+    { kr: "정확하다.",     en: "To be exact; to be precise; to be accurate.",          cat: "Descriptors", hanja: ["正","確",null,null], hanjaEn: "correct + certain" },
+    { kr: "싫다.",         en: "To be displeasing; to dislike (subject -이/가).",      cat: "Vocabulary" },
+    { kr: "싫어하다.",     en: "To dislike (object -을/를); to hate.",                 cat: "Vocabulary" },
+    { kr: "평일.",         en: "Weekdays; a weekday.",                                 cat: "Vocabulary",  hanja: ["平","日"],         hanjaEn: "ordinary + day" },
+    { kr: "동.",           en: "(counter for buildings; e.g. 3동 = Building 3).",      cat: "Vocabulary",  hanja: ["棟"],             hanjaEn: "building/ridge" },
+    { kr: "도시 가스.",    en: "City gas; municipal gas.",                              cat: "Vocabulary",  hanja: ["都","市",null,null], hanjaEn: "metropolis + city" },
+    { kr: "전화국.",       en: "A telephone company.",                                  cat: "Vocabulary",  hanja: ["電","話","局"],     hanjaEn: "electricity + talk + bureau" },
+    { kr: "모든.",         en: "All; every (pre-noun modifier).",                      cat: "Vocabulary" },
+    { kr: "벌써.",         en: "Already; so soon.",                                    cat: "Vocabulary" },
+    { kr: "-(으)ㄹ까 하다.", en: "(I/we) am thinking of doing (something); (I/we) may (do something).", cat: "Grammar" },
+  ],
+
+  "6.22 A": [
+    { kr: "살림.",         en: "Household; running a household (also: household goods).", cat: "Vocabulary" },
+    { kr: "살림하다.",     en: "To run a household.",                                  cat: "Vocabulary" },
+    { kr: "항상.",         en: "Always; all the time.",                                cat: "Vocabulary",  hanja: ["恒","常"],         hanjaEn: "constant + ordinary/always" },
+    { kr: "혼자.",         en: "Alone; by oneself (also 혼자서).",                     cat: "Vocabulary" },
+    { kr: "혼자서.",       en: "Alone; by oneself (also 혼자).",                       cat: "Vocabulary" },
+    { kr: "서로.",         en: "Each other; one another; mutually.",                   cat: "Vocabulary" },
+    { kr: "나누다.",       en: "To share; to divide.",                                 cat: "Vocabulary" },
+    { kr: "장을 보다.",    en: "To go grocery shopping.",                              cat: "Vocabulary" },
+    { kr: "먼지.",         en: "Dust.",                                                cat: "Vocabulary" },
+    { kr: "털다.",         en: "To shake off; to beat (dust off something).",          cat: "Vocabulary" },
+    { kr: "떨다.",         en: "To shake; to brush off; to tremble.",                  cat: "Vocabulary" },
+    { kr: "쓸다.",         en: "To sweep.",                                            cat: "Vocabulary" },
+    { kr: "걸레질.",       en: "Wiping; cleaning with a cloth.",                       cat: "Vocabulary" },
+    { kr: "걸레질하다.",   en: "To wipe; to mop up; to clean with a cloth.",          cat: "Vocabulary" },
+    { kr: "다림질.",       en: "Ironing.",                                             cat: "Vocabulary" },
+    { kr: "다림질하다.",   en: "To iron (clothes).",                                   cat: "Vocabulary" },
+    { kr: "쓰레기.",       en: "Trash; waste; garbage.",                               cat: "Vocabulary" },
+    { kr: "버리다.",       en: "To throw away; to discard; to take out (e.g. trash).", cat: "Vocabulary" },
+    { kr: "막내.",         en: "The youngest (child in a family, etc.).",              cat: "Vocabulary" },
+    { kr: "돌보다.",       en: "To look after; to take care of.",                      cat: "Vocabulary" },
+    { kr: "벗다.",         en: "To take off (clothes, shoes, etc.).",                  cat: "Vocabulary" },
+    { kr: "놓다.",         en: "To put; to place; to set down. (Note: -어/아 놓다 = to do for later use.)", cat: "Vocabulary" },
+  ],
+
+  "6.22 B": [
+    { kr: "관리사무소.",   en: "A management office.",                                 cat: "Vocabulary",  hanja: ["管","理","事","務","所"], hanjaEn: "manage + reason + affairs + office + place" },
+    { kr: "관리비.",       en: "A management fee.",                                    cat: "Vocabulary",  hanja: ["管","理","費"],     hanjaEn: "manage + reason + expense" },
+    { kr: "문제.",         en: "A problem; an issue; a question; trouble.",            cat: "Vocabulary",  hanja: ["問","題"],         hanjaEn: "ask + topic" },
+    { kr: "처리.",         en: "Handling; dealing with something.",                    cat: "Vocabulary",  hanja: ["處","理"],         hanjaEn: "place/deal + manage" },
+    { kr: "처리하다.",     en: "To deal with; to handle; to process.",                 cat: "Vocabulary",  hanja: ["處","理",null,null], hanjaEn: "place/deal + manage" },
+    { kr: "처리되다.",     en: "To be dealt with; to be handled; to be processed.",   cat: "Vocabulary",  hanja: ["處","理",null,null], hanjaEn: "place/deal + manage" },
+    { kr: "수도.",         en: "Tap water; water service.",                            cat: "Vocabulary",  hanja: ["水","道"],         hanjaEn: "water + road/channel" },
+    { kr: "전기.",         en: "Electricity.",                                         cat: "Vocabulary",  hanja: ["電","氣"],         hanjaEn: "electricity + energy" },
+    { kr: "난방.",         en: "Heating.",                                             cat: "Vocabulary",  hanja: ["暖","房"],         hanjaEn: "warm + room" },
+    { kr: "변기.",         en: "A toilet bowl.",                                       cat: "Vocabulary",  hanja: ["便","器"],         hanjaEn: "convenience + vessel" },
+    { kr: "새다.",         en: "To leak.",                                             cat: "Vocabulary" },
+    { kr: "보일러.",       en: "A boiler.",                                            cat: "Vocabulary" },
+    { kr: "수리.",         en: "Repair; remodeling.",                                  cat: "Vocabulary",  hanja: ["修","理"],         hanjaEn: "fix + manage" },
+    { kr: "수리하다.",     en: "To repair; to fix.",                                   cat: "Vocabulary",  hanja: ["修","理",null,null], hanjaEn: "fix + manage" },
+    { kr: "불친절.",       en: "Unkindness; unfriendliness.",                          cat: "Descriptors", hanja: ["不","親","切"],     hanjaEn: "not + close + cut/kind" },
+    { kr: "불친절하다.",   en: "To be unfriendly; to be unkind.",                      cat: "Descriptors", hanja: ["不","親","切",null,null], hanjaEn: "not + close + cut/kind" },
+    { kr: "기분.",         en: "A feeling; a mood.",                                   cat: "Vocabulary",  hanja: ["氣","分"],         hanjaEn: "energy/spirit + divide/part" },
+    { kr: "슬프다.",       en: "To be sad; to be sorrowful.",                          cat: "Descriptors" },
+    { kr: "기쁘다.",       en: "To be happy; to be joyful.",                           cat: "Descriptors" },
+    { kr: "화.",           en: "Anger; rage.",                                         cat: "Vocabulary",  hanja: ["火"],             hanjaEn: "fire" },
+    { kr: "화가 나다.",    en: "To get angry; to be upset.",                           cat: "Vocabulary",  hanja: ["火",null,null,null], hanjaEn: "fire" },
+    { kr: "나쁘다.",       en: "To be bad.",                                           cat: "Descriptors" },
+    { kr: "이미.",         en: "Already.",                                             cat: "Vocabulary",  hanja: ["已",null],        hanjaEn: "already/stop" },
+    { kr: "-는지 알다/모르다.", en: "(verb)-는지/-었는지 / (adj.)-(으)ㄴ지 + 알다/모르다: to know/not know whether or if (something happens/happened/is).", cat: "Grammar" },
+  ],
+
+  "6.22 C": [
+    { kr: "절약.",         en: "Economizing; saving; frugality.",                      cat: "Vocabulary",  hanja: ["節","約"],         hanjaEn: "restraint + promise/reduce" },
+    { kr: "절약하다.",     en: "To economize; to be frugal.",                          cat: "Vocabulary",  hanja: ["節","約",null,null], hanjaEn: "restraint + reduce" },
+    { kr: "아끼다.",       en: "To economize; to save; to be sparing (also: to cherish).", cat: "Vocabulary" },
+    { kr: "저축.",         en: "Saving money; savings (formal/long-term).",            cat: "Vocabulary",  hanja: ["貯","蓄"],         hanjaEn: "store + accumulate" },
+    { kr: "저축하다.",     en: "To save money (formally; long-term).",                 cat: "Vocabulary",  hanja: ["貯","蓄",null,null], hanjaEn: "store + accumulate" },
+    { kr: "저금.",         en: "Saving money; savings (everyday/colloquial).",         cat: "Vocabulary",  hanja: ["貯","金"],         hanjaEn: "store + gold/money" },
+    { kr: "저금하다.",     en: "To save money (colloquial).",                          cat: "Vocabulary",  hanja: ["貯","金",null,null], hanjaEn: "store + gold/money" },
+    { kr: "빚.",           en: "A debt.",                                              cat: "Vocabulary" },
+    { kr: "물가.",         en: "Prices (of commodities); cost of living.",             cat: "Vocabulary",  hanja: ["物","價"],         hanjaEn: "goods + price" },
+    { kr: "오르다.",       en: "To go up; to rise.",                                   cat: "Vocabulary" },
+    { kr: "교육.",         en: "Education.",                                           cat: "Vocabulary",  hanja: ["敎","育"],         hanjaEn: "teach + raise" },
+    { kr: "오락.",         en: "Entertainment; recreation.",                           cat: "Vocabulary",  hanja: ["娛","樂"],         hanjaEn: "enjoy + pleasure" },
+    { kr: "외식.",         en: "Eating out; dining out.",                              cat: "Vocabulary",  hanja: ["外","食"],         hanjaEn: "outside + eat" },
+    { kr: "외식하다.",     en: "To eat out; to dine out.",                             cat: "Vocabulary",  hanja: ["外","食",null,null], hanjaEn: "outside + eat" },
+    { kr: "식비.",         en: "Food expenses.",                                       cat: "Vocabulary",  hanja: ["食","費"],         hanjaEn: "eat + expense" },
+    { kr: "-비.",          en: "(noun)-비: expense suffix (e.g. 교육비, 오락비, 외식비, 식비).", cat: "Grammar",  hanja: ["費"],             hanjaEn: "expense" },
+    { kr: "줄이다.",       en: "To reduce; to cut down; to shorten.",                  cat: "Vocabulary" },
+    { kr: "월급.",         en: "A salary; a monthly paycheck.",                        cat: "Vocabulary",  hanja: ["月","給"],         hanjaEn: "month + supply/pay" },
+    { kr: "자꾸.",         en: "Repeatedly; again and again.",                         cat: "Vocabulary" },
+    { kr: "-기 위해서.",   en: "(action verb)-기 위해서: in order to; for the sake of (doing).", cat: "Grammar" },
+    { kr: "-을/를 위해서.", en: "(noun)-을/를 위해서: for the sake of; for the benefit of.", cat: "Grammar" },
+    { kr: "-거나.",        en: "(verb 1)-거나 (verb 2): verb 1 or verb 2.",            cat: "Grammar" },
+    { kr: "-든지.",        en: "(verb 1)-든지 (verb 2): verb 1 or verb 2 (whichever).", cat: "Grammar" },
+    { kr: "(person)-네.",  en: "(person)-네: the (person)'s family/household (e.g. 민수네 = the Minsus).", cat: "Grammar" },
+  ],
+
+  "6.23 A": [
+    { kr: "공휴일.",       en: "An official holiday; a legal holiday.",                cat: "Vocabulary",  hanja: ["公","休","日"],     hanjaEn: "public + rest + day" },
+    { kr: "국경일.",       en: "A national holiday.",                                  cat: "Vocabulary",  hanja: ["國","慶","日"],     hanjaEn: "nation + celebrate + day" },
+    { kr: "휴일.",         en: "A day off; a holiday.",                                cat: "Vocabulary",  hanja: ["休","日"],         hanjaEn: "rest + day" },
+    { kr: "기념.",         en: "Commemoration; celebration.",                          cat: "Vocabulary",  hanja: ["紀","念"],         hanjaEn: "record + think/remember" },
+    { kr: "기념하다.",     en: "To commemorate; to celebrate.",                        cat: "Vocabulary",  hanja: ["紀","念",null,null], hanjaEn: "record + think/remember" },
+    { kr: "중요하다.",     en: "To be important.",                                     cat: "Descriptors", hanja: ["重","要",null,null], hanjaEn: "heavy + essential" },
+    { kr: "설.",           en: "Lunar New Year (as a concept; also: one's count-of-age year turning).", cat: "Vocabulary" },
+    { kr: "설날.",         en: "Lunar New Year's Day (the holiday itself; 날 = day).", cat: "Vocabulary" },
+    { kr: "추석.",         en: "The Harvest Moon Festival (mid-autumn holiday).",      cat: "Vocabulary",  hanja: ["秋","夕"],         hanjaEn: "autumn + evening" },
+    { kr: "광복절.",       en: "Korean Independence Day (liberation from Japanese rule, Aug 15).", cat: "Vocabulary", hanja: ["光","復","節"],  hanjaEn: "light + restore + holiday" },
+    { kr: "한글날.",       en: "Hangeul Day (Oct 9; celebrating the Korean alphabet).", cat: "Vocabulary" },
+    { kr: "국군의 날.",    en: "Korean Armed Forces Day (Oct 1).",                     cat: "Vocabulary",  hanja: ["國","軍",null,null], hanjaEn: "nation + military" },
+    { kr: "부처님 오신날.", en: "Buddha's Birthday.",                                  cat: "Vocabulary" },
+    { kr: "크리스마스.",   en: "Christmas.",                                           cat: "Vocabulary" },
+    { kr: "독립.",         en: "Independence.",                                        cat: "Vocabulary",  hanja: ["獨","立"],         hanjaEn: "alone + stand" },
+    { kr: "독립하다.",     en: "To become independent.",                               cat: "Vocabulary",  hanja: ["獨","立",null,null], hanjaEn: "alone + stand" },
+    { kr: "달력.",         en: "A calendar.",                                          cat: "Vocabulary",  hanja: [null,"曆"],         hanjaEn: "calendar" },
+    { kr: "초순.",         en: "The beginning of the month (days 1–10).",             cat: "Vocabulary",  hanja: ["初","旬"],         hanjaEn: "beginning + ten-day period" },
+    { kr: "중순.",         en: "Around the middle of the month (days 11–20).",        cat: "Vocabulary",  hanja: ["中","旬"],         hanjaEn: "middle + ten-day period" },
+    { kr: "하순.",         en: "The end of the month (days 21–31).",                  cat: "Vocabulary",  hanja: ["下","旬"],         hanjaEn: "lower/end + ten-day period" },
+    { kr: "-말.",          en: "(period)-말: the end of a week/month/year/semester.", cat: "Grammar",     hanja: ["末"],             hanjaEn: "end/last" },
+    { kr: "이제.",         en: "Now; from now on.",                                    cat: "Vocabulary" },
+    { kr: "꼭.",           en: "Surely; exactly; without fail; at any cost.",          cat: "Vocabulary" },
+  ],
+
+  "6.23 B": [
+    { kr: "명절.",         en: "A traditional holiday.",                               cat: "Vocabulary",  hanja: ["名","節"],         hanjaEn: "name/famous + holiday/season" },
+    { kr: "전통.",         en: "A tradition.",                                         cat: "Vocabulary",  hanja: ["傳","統"],         hanjaEn: "pass down + lineage" },
+    { kr: "새해.",         en: "A new year.",                                          cat: "Vocabulary" },
+    { kr: "떡국.",         en: "Rice cake soup (eaten on Lunar New Year).",            cat: "Vocabulary" },
+    { kr: "송편.",         en: "Traditional Korean rice cake steamed on pine needles.", cat: "Vocabulary" },
+    { kr: "귀성객.",       en: "People going to their hometown during a holiday season.", cat: "Vocabulary", hanja: ["歸","省","客"],   hanjaEn: "return + visit home + guest" },
+    { kr: "찾아가다.",     en: "To visit; to go to see (someone).",                    cat: "Vocabulary" },
+    { kr: "붐비다.",       en: "To be crowded; to be congested.",                      cat: "Vocabulary" },
+    { kr: "차례.",         en: "A memorial service for an ancestor (traditional holiday ritual).", cat: "Vocabulary", hanja: ["茶","禮"], hanjaEn: "tea + rite" },
+    { kr: "차례를 지내다.", en: "To perform a memorial service for an ancestor.",      cat: "Vocabulary",  hanja: ["茶","禮",null,null,null,null], hanjaEn: "tea + rite" },
+    { kr: "세배.",         en: "A formal deep bow of respect to elders on New Year's Day.", cat: "Vocabulary", hanja: ["歲","拜"],    hanjaEn: "year/age + bow" },
+    { kr: "세배하다.",     en: "To perform a formal New Year's bow.",                  cat: "Vocabulary",  hanja: ["歲","拜",null,null], hanjaEn: "year/age + bow" },
+    { kr: "복.",           en: "Fortune; a blessing.",                                 cat: "Vocabulary",  hanja: ["福"],             hanjaEn: "fortune/blessing" },
+    { kr: "성묘.",         en: "Visiting one's ancestral grave.",                      cat: "Vocabulary",  hanja: ["省","墓"],         hanjaEn: "visit + grave" },
+    { kr: "성묘하다.",     en: "To visit one's ancestral grave.",                      cat: "Vocabulary",  hanja: ["省","墓",null,null], hanjaEn: "visit + grave" },
+    { kr: "묘.",           en: "A grave; a tomb.",                                     cat: "Vocabulary",  hanja: ["墓"],             hanjaEn: "grave" },
+    { kr: "놀이.",         en: "Play; a game; amusement.",                             cat: "Vocabulary" },
+    { kr: "조상님.",       en: "Ancestors; forefathers (honorific).",                  cat: "Vocabulary",  hanja: ["祖","上",null],    hanjaEn: "ancestor + above" },
+    { kr: "음력.",         en: "A lunar calendar.",                                    cat: "Vocabulary",  hanja: ["陰","曆"],         hanjaEn: "yin/lunar + calendar" },
+    { kr: "양력.",         en: "A solar calendar.",                                    cat: "Vocabulary",  hanja: ["陽","曆"],         hanjaEn: "yang/solar + calendar" },
+    { kr: "자기.",         en: "One's own; oneself.",                                  cat: "Vocabulary" },
+    { kr: "제일.",         en: "The most; the -est; number one.",                      cat: "Vocabulary",  hanja: ["第","一"],         hanjaEn: "ordinal + one" },
+    { kr: "-의.",          en: "(noun)-의: possessive marker ('s / of).",              cat: "Grammar",     hanja: ["의"],             hanjaEn: "of/possessive" },
+    { kr: "-다고 하다/-라고 하다.", en: "To say that… (indirect quotation; -다고 for verbs/adj., -라고 for nouns).", cat: "Grammar" },
+  ],
+
+  "6.23 C": [
+    { kr: "어버이날.",     en: "Parents' Day (May 8 in Korea).",                       cat: "Vocabulary" },
+    { kr: "어린이날.",     en: "Children's Day (May 5 in Korea).",                     cat: "Vocabulary" },
+    { kr: "스승의 날.",    en: "Teacher Appreciation Day (May 15 in Korea).",          cat: "Vocabulary" },
+    { kr: "꽃.",           en: "A flower.",                                            cat: "Vocabulary" },
+    { kr: "달다.",         en: "To attach; to pin; to hang (something).",              cat: "Vocabulary" },
+    { kr: "효도관광.",     en: "A vacation for parents paid for by their children; 'filial piety sightseeing'.", cat: "Vocabulary", hanja: ["孝","道","觀","光"], hanjaEn: "filial piety + road + observe + light" },
+    { kr: "카드.",         en: "A card.",                                              cat: "Vocabulary" },
+    { kr: "동물원.",       en: "A zoo.",                                               cat: "Vocabulary",  hanja: ["動","物","園"],     hanjaEn: "move + creature + garden" },
+    { kr: "장난감.",       en: "A toy.",                                               cat: "Vocabulary" },
+    { kr: "놀이공원.",     en: "An amusement park.",                                   cat: "Vocabulary",  hanja: [null,null,"公","園"], hanjaEn: "public + garden/park" },
+    { kr: "결정.",         en: "A decision.",                                          cat: "Vocabulary",  hanja: ["決","定"],         hanjaEn: "decide + fix/set" },
+    { kr: "결정하다.",     en: "To decide.",                                           cat: "Vocabulary",  hanja: ["決","定",null,null], hanjaEn: "decide + fix/set" },
+    { kr: "결정되다.",     en: "To be decided.",                                       cat: "Vocabulary",  hanja: ["決","定",null,null], hanjaEn: "decide + fix/set" },
+    { kr: "생각.",         en: "A thought; an idea.",                                  cat: "Vocabulary" },
+    { kr: "생각하다.",     en: "To think; to consider.",                               cat: "Vocabulary" },
+    { kr: "생각나다.",     en: "To come to mind; to occur to (someone).",              cat: "Vocabulary" },
+    { kr: "글쎄.",         en: "\"Well…\"; \"Hmm…\" (expressing hesitation, doubt, or thoughtfulness).", cat: "Vocabulary" },
+    { kr: "-지(요).",      en: "(sentence ender) expressing assuredness or a soft tag question (\"right?\", \"isn't it?\").", cat: "Grammar" },
+    { kr: "-었었-/-았었-.", en: "Used to (do something / be in some state); past-in-the-past tense marker.", cat: "Grammar" },
+  ],
+
+  "6.24 A": [
+    { kr: "군대.",         en: "The military; troops.",                                cat: "Vocabulary",  hanja: ["軍","隊"],         hanjaEn: "military + unit/group" },
+    { kr: "휴학.",         en: "A long-term absence from school.",                     cat: "Vocabulary",  hanja: ["休","學"],         hanjaEn: "rest + study" },
+    { kr: "휴학하다.",     en: "To take a long-term leave of absence from school.",    cat: "Vocabulary",  hanja: ["休","學",null,null], hanjaEn: "rest + study" },
+    { kr: "입대.",         en: "Enlistment; joining the military.",                    cat: "Vocabulary",  hanja: ["入","隊"],         hanjaEn: "enter + unit/group" },
+    { kr: "입대하다.",     en: "To enlist; to join the military.",                     cat: "Vocabulary",  hanja: ["入","隊",null,null], hanjaEn: "enter + unit/group" },
+    { kr: "복무.",         en: "Military (or public) service.",                        cat: "Vocabulary",  hanja: ["服","務"],         hanjaEn: "serve + duty" },
+    { kr: "복무하다.",     en: "To serve (in the military or public service).",        cat: "Vocabulary",  hanja: ["服","務",null,null], hanjaEn: "serve + duty" },
+    { kr: "제대.",         en: "Discharge from military service.",                     cat: "Vocabulary",  hanja: ["除","隊"],         hanjaEn: "remove + unit/group" },
+    { kr: "제대하다.",     en: "To be discharged from military service.",              cat: "Vocabulary",  hanja: ["除","隊",null,null], hanjaEn: "remove + unit/group" },
+    { kr: "훈련소.",       en: "A training site; a training center; boot camp.",       cat: "Vocabulary",  hanja: ["訓","練","所"],     hanjaEn: "train + practice + place" },
+    { kr: "훈련.",         en: "Training.",                                            cat: "Vocabulary",  hanja: ["訓","練"],         hanjaEn: "train + practice" },
+    { kr: "훈련하다.",     en: "To train.",                                            cat: "Vocabulary",  hanja: ["訓","練",null,null], hanjaEn: "train + practice" },
+    { kr: "훈련받다.",     en: "To be trained; to receive training.",                  cat: "Vocabulary",  hanja: ["訓","練",null,null], hanjaEn: "train + practice" },
+    { kr: "지원.",         en: "Application; support.",                                cat: "Vocabulary",  hanja: ["支","援"],         hanjaEn: "support + aid" },
+    { kr: "지원하다.",     en: "To apply (to an organization); to support.",           cat: "Vocabulary",  hanja: ["支","援",null,null], hanjaEn: "support + aid" },
+    { kr: "지원받다.",     en: "To receive support; to be supported.",                 cat: "Vocabulary",  hanja: ["支","援",null,null], hanjaEn: "support + aid" },
+    { kr: "병과.",         en: "Branch specialty; MOS (Military Occupational Specialty).", cat: "Vocabulary", hanja: ["兵","科"],        hanjaEn: "soldier + branch/department" },
+    { kr: "공병.",         en: "Corps of engineers (military).",                       cat: "Vocabulary",  hanja: ["工","兵"],         hanjaEn: "construction + soldier" },
+    { kr: "포병.",         en: "Artillery.",                                           cat: "Vocabulary",  hanja: ["砲","兵"],         hanjaEn: "cannon + soldier" },
+    { kr: "보병.",         en: "Infantry.",                                            cat: "Vocabulary",  hanja: ["步","兵"],         hanjaEn: "walk + soldier" },
+    { kr: "기갑.",         en: "Armored (branch).",                                    cat: "Vocabulary",  hanja: ["機","甲"],         hanjaEn: "machine + armor" },
+    { kr: "통신.",         en: "Communication.",                                       cat: "Vocabulary",  hanja: ["通","信"],         hanjaEn: "pass through + trust/message" },
+    { kr: "통신하다.",     en: "To communicate.",                                      cat: "Vocabulary",  hanja: ["通","信",null,null], hanjaEn: "pass through + message" },
+    { kr: "의무.",         en: "Medical service (in military context).",               cat: "Vocabulary",  hanja: ["醫","務"],         hanjaEn: "medicine + duty" },
+    { kr: "전방.",         en: "The front; the front area.",                           cat: "Vocabulary",  hanja: ["前","方"],         hanjaEn: "front + direction" },
+    { kr: "후방.",         en: "The rear; the rear area.",                             cat: "Vocabulary",  hanja: ["後","方"],         hanjaEn: "behind + direction" },
+    { kr: "휴가.",         en: "A vacation; (annual) leave.",                          cat: "Vocabulary",  hanja: ["休","暇"],         hanjaEn: "rest + leisure/free time" },
+    { kr: "여군.",         en: "A female serviceperson; female military personnel.",   cat: "Vocabulary",  hanja: ["女","軍"],         hanjaEn: "woman + military" },
+    { kr: "상관.",         en: "A boss; a superior.",                                  cat: "Vocabulary",  hanja: ["上","官"],         hanjaEn: "above + official" },
+    { kr: "까다롭다.",     en: "To be strict; to be picky; to be demanding.",          cat: "Descriptors" },
+  ],
+
+  "6.24 B": [
+    { kr: "제식 훈련.",    en: "Drill and ceremony.",                                  cat: "Vocabulary",  hanja: ["制","式","訓","練"], hanjaEn: "system + form + train + practice" },
+    { kr: "교관.",         en: "A drill instructor.",                                  cat: "Vocabulary",  hanja: ["敎","官"],         hanjaEn: "teach + official" },
+    { kr: "화생방 훈련.",  en: "CBR training; Chemical, Biological and Radiological training.", cat: "Vocabulary", hanja: ["化","生","放","訓","練"], hanjaEn: "chemical + biological + radiological + train + practice" },
+    { kr: "체력 훈련.",    en: "Physical training; PT.",                               cat: "Vocabulary",  hanja: ["體","力","訓","練"], hanjaEn: "body + strength + train + practice" },
+    { kr: "전투 훈련.",    en: "Combat training.",                                     cat: "Vocabulary",  hanja: ["戰","鬪","訓","練"], hanjaEn: "war + fight + train + practice" },
+    { kr: "유격 훈련.",    en: "Guerrilla/obstacle training.",                         cat: "Vocabulary",  hanja: ["遊","擊","訓","練"], hanjaEn: "roam + strike + train + practice" },
+    { kr: "집합.",         en: "A formation; gathering.",                              cat: "Vocabulary",  hanja: ["集","合"],         hanjaEn: "gather + combine" },
+    { kr: "집합하다.",     en: "To fall into formation; to assemble.",                 cat: "Vocabulary",  hanja: ["集","合",null,null], hanjaEn: "gather + combine" },
+    { kr: "완전무장.",     en: "Full-battle dress.",                                   cat: "Vocabulary",  hanja: ["完","全","武","裝"], hanjaEn: "complete + whole + weapon + dress" },
+    { kr: "완전무장하다.", en: "To wear full-battle dress.",                            cat: "Vocabulary",  hanja: ["完","全","武","裝",null,null], hanjaEn: "complete + whole + weapon + dress" },
+    { kr: "배낭.",         en: "A knapsack; a backpack.",                              cat: "Vocabulary",  hanja: ["背","囊"],         hanjaEn: "back + sack" },
+    { kr: "대검.",         en: "A bayonet.",                                           cat: "Vocabulary",  hanja: ["大","劍"],         hanjaEn: "large + sword" },
+    { kr: "방탄 헬멧.",    en: "A bulletproof helmet.",                                cat: "Vocabulary",  hanja: ["防","彈",null,null], hanjaEn: "protect + bullet" },
+    { kr: "탄약.",         en: "Ammunition.",                                          cat: "Vocabulary",  hanja: ["彈","藥"],         hanjaEn: "bullet + medicine/supply" },
+    { kr: "권총.",         en: "A pistol; a handgun.",                                 cat: "Vocabulary",  hanja: ["拳","銃"],         hanjaEn: "fist + gun" },
+    { kr: "소총.",         en: "A rifle.",                                             cat: "Vocabulary",  hanja: ["小","銃"],         hanjaEn: "small + gun" },
+    { kr: "총알.",         en: "A bullet.",                                            cat: "Vocabulary",  hanja: ["銃",null],         hanjaEn: "gun" },
+    { kr: "수류탄.",       en: "A hand grenade.",                                      cat: "Vocabulary",  hanja: ["手","榴","彈"],     hanjaEn: "hand + pomegranate + projectile" },
+    { kr: "방독면.",       en: "A gas mask.",                                          cat: "Vocabulary",  hanja: ["防","毒","面"],     hanjaEn: "protect + poison + face" },
+    { kr: "군화.",         en: "Military boots; military footwear.",                   cat: "Vocabulary",  hanja: ["軍","靴"],         hanjaEn: "military + boots" },
+    { kr: "수통.",         en: "A canteen (for water).",                               cat: "Vocabulary",  hanja: ["水","筒"],         hanjaEn: "water + tube/container" },
+    { kr: "천막.",         en: "A tent (= 텐트).",                                     cat: "Vocabulary",  hanja: ["天","幕"],         hanjaEn: "sky + curtain/cover" },
+    { kr: "보급품.",       en: "Supplies.",                                            cat: "Vocabulary",  hanja: ["補","給","品"],     hanjaEn: "supplement + supply + goods" },
+    { kr: "던지다.",       en: "To throw.",                                            cat: "Vocabulary" },
+    { kr: "쏘다.",         en: "To shoot.",                                            cat: "Vocabulary" },
+    { kr: "메다.",         en: "To carry (something on one's shoulder).",              cat: "Vocabulary" },
+    { kr: "윗몸 일으키기.", en: "A sit-up.",                                           cat: "Vocabulary" },
+    { kr: "팔 굽혀 펴기.", en: "A push-up.",                                           cat: "Vocabulary" },
+    { kr: "행군.",         en: "Marching.",                                            cat: "Vocabulary",  hanja: ["行","軍"],         hanjaEn: "walk/go + military" },
+    { kr: "행군하다.",     en: "To march.",                                            cat: "Vocabulary",  hanja: ["行","軍",null,null], hanjaEn: "walk/go + military" },
+    { kr: "보초.",         en: "A sentry; a guard.",                                   cat: "Vocabulary",  hanja: ["步","哨"],         hanjaEn: "walk + lookout" },
+    { kr: "보초서다.",     en: "To stand guard; to be on sentry duty.",                cat: "Vocabulary",  hanja: ["步","哨",null,null], hanjaEn: "walk + lookout" },
+    { kr: "교대.",         en: "An alternation; a shift.",                             cat: "Vocabulary",  hanja: ["交","代"],         hanjaEn: "exchange + replace" },
+    { kr: "교대하다.",     en: "To take turns; to rotate; to alternate.",              cat: "Vocabulary",  hanja: ["交","代",null,null], hanjaEn: "exchange + replace" },
+    { kr: "신체검사.",     en: "A physical examination; a checkup.",                   cat: "Vocabulary",  hanja: ["身","體","檢","査"], hanjaEn: "body + body + inspect + examine" },
+    { kr: "신체검사하다.", en: "To have a physical examination.",                      cat: "Vocabulary",  hanja: ["身","體","檢","査",null,null], hanjaEn: "body + body + inspect + examine" },
+    { kr: "헬기.",         en: "A helicopter (short for 헬리콥터).",                   cat: "Vocabulary" },
+    { kr: "헬리콥터.",     en: "A helicopter.",                                        cat: "Vocabulary" },
+    { kr: "-(으/느)냐고 하다.", en: "(Quotation) To ask (someone something); to ask whether/if.", cat: "Grammar" },
+    { kr: "-자고 하다.",   en: "(Quotation) To suggest (doing something together).",   cat: "Grammar" },
+    { kr: "-(으)라고 하다.", en: "(Quotation) To tell/order (someone to do something).", cat: "Grammar" },
+  ],
+
+  "6.24 C": [
+    { kr: "사단.",         en: "A division (military unit).",                          cat: "Vocabulary",  hanja: ["師","團"],         hanjaEn: "teacher/division + group" },
+    { kr: "여단.",         en: "A brigade.",                                           cat: "Vocabulary",  hanja: ["旅","團"],         hanjaEn: "travel/brigade + group" },
+    { kr: "연대.",         en: "A regiment.",                                          cat: "Vocabulary",  hanja: ["聯","隊"],         hanjaEn: "connect + unit" },
+    { kr: "대대.",         en: "A battalion.",                                         cat: "Vocabulary",  hanja: ["大","隊"],         hanjaEn: "large + unit" },
+    { kr: "중대.",         en: "A company (military unit).",                           cat: "Vocabulary",  hanja: ["中","隊"],         hanjaEn: "middle + unit" },
+    { kr: "소대.",         en: "A platoon.",                                           cat: "Vocabulary",  hanja: ["小","隊"],         hanjaEn: "small + unit" },
+    { kr: "분대.",         en: "A squad.",                                             cat: "Vocabulary",  hanja: ["分","隊"],         hanjaEn: "divide + unit" },
+    { kr: "분대장.",       en: "A squad leader.",                                      cat: "Vocabulary",  hanja: ["分","隊","長"],     hanjaEn: "divide + unit + leader" },
+    { kr: "부사관.",       en: "A noncommissioned officer (NCO).",                     cat: "Vocabulary",  hanja: ["副","士","官"],     hanjaEn: "assistant + soldier + official" },
+    { kr: "배치.",         en: "Deployment; assignment; arrangement.",                 cat: "Vocabulary",  hanja: ["配","置"],         hanjaEn: "distribute + place" },
+    { kr: "배치하다.",     en: "To deploy; to assign; to arrange.",                    cat: "Vocabulary",  hanja: ["配","置",null,null], hanjaEn: "distribute + place" },
+    { kr: "배치되다.",     en: "To be deployed; to be assigned.",                      cat: "Vocabulary",  hanja: ["配","置",null,null], hanjaEn: "distribute + place" },
+    { kr: "소속.",         en: "Belonging; membership (in a unit/organization).",      cat: "Vocabulary",  hanja: ["所","屬"],         hanjaEn: "place + belong" },
+    { kr: "소속되다.",     en: "To belong to; to be assigned to.",                     cat: "Vocabulary",  hanja: ["所","屬",null,null], hanjaEn: "place + belong" },
+    { kr: "담당.",         en: "Charge; responsibility; undertaking.",                 cat: "Vocabulary",  hanja: ["擔","當"],         hanjaEn: "bear/carry + appropriate" },
+    { kr: "담당하다.",     en: "To be in charge of; to be responsible for.",          cat: "Vocabulary",  hanja: ["擔","當",null,null], hanjaEn: "bear/carry + appropriate" },
+    { kr: "통역.",         en: "Interpretation (spoken language).",                    cat: "Vocabulary",  hanja: ["通","譯"],         hanjaEn: "pass through + translate" },
+    { kr: "통역하다.",     en: "To interpret (spoken language).",                      cat: "Vocabulary",  hanja: ["通","譯",null,null], hanjaEn: "pass through + translate" },
+    { kr: "번역.",         en: "Translation (written language).",                      cat: "Vocabulary",  hanja: ["飜","譯"],         hanjaEn: "turn over + translate" },
+    { kr: "번역하다.",     en: "To translate (written language).",                     cat: "Vocabulary",  hanja: ["飜","譯",null,null], hanjaEn: "turn over + translate" },
+    { kr: "인사과.",       en: "A personnel section.",                                 cat: "Vocabulary",  hanja: ["人","事","課"],     hanjaEn: "person + affairs + section" },
+    { kr: "정보과.",       en: "An intelligence section.",                             cat: "Vocabulary",  hanja: ["情","報","課"],     hanjaEn: "feeling/situation + report + section" },
+    { kr: "작전과.",       en: "An operations section.",                               cat: "Vocabulary",  hanja: ["作","戰","課"],     hanjaEn: "make + war + section" },
+    { kr: "군수과.",       en: "A supply section.",                                    cat: "Vocabulary",  hanja: ["軍","需","課"],     hanjaEn: "military + need + section" },
+    { kr: "합동.",         en: "Joint; combined; union.",                              cat: "Vocabulary",  hanja: ["合","同"],         hanjaEn: "combine + same" },
+    { kr: "일정.",         en: "A schedule; an agenda.",                               cat: "Vocabulary",  hanja: ["日","程"],         hanjaEn: "day + journey/schedule" },
+    { kr: "~밖에.",        en: "(noun) 밖에 + negative verb: only; nothing but.",      cat: "Grammar",     hanja: ["밖",null],         hanjaEn: "outside" },
+  ],
 };
 
 // Tag every phrase with its source list name (__list) so any flattened
@@ -2588,6 +2927,7 @@ function resetInputState(phrase) {
   submissionLocked = false;
   srsRecordedThisQuestion = false;
   lockedSyls       = getSyllables(phrase.kr).map(() => null);
+  if (_inputDebounce) { clearTimeout(_inputDebounce); _inputDebounce = null; }
 }
 
 // ── LIST SELECTOR ─────────────────────────────────────────────────────────
@@ -2802,12 +3142,33 @@ function updateBlocks(typedSyls, state) {
 }
 
 // ── INPUT HANDLING ────────────────────────────────────────────────────────
-// We never read input.value during an active composition session on macOS,
-// because the value is unreliable mid-composition (syllables may appear
-// reordered or partially re-opened). Instead we maintain committedSyls
-// ourselves, only syncing from input.value on compositionend and plain input.
-let committedSyls = []; // syllables confirmed committed (not mid-composition)
+// Input handling for Korean (Hangul) IME across Safari and Chrome.
+//
+// The core problem: Hangul input uses IME composition. Each syllable is
+// "composed" from individual jamo keystrokes before being committed. The
+// browser fires compositionstart → compositionupdate (per keystroke) →
+// compositionend (syllable committed). Safari and Chrome differ in two ways:
+//
+// 1. Chrome re-opens composition immediately after compositionend for the next
+//    syllable, causing an `input` event to fire between compositionend and the
+//    next compositionstart. Reading input.value at that instant gives a stale
+//    or partially-updated value. We use a one-tick defer to let Chrome settle.
+//
+// 2. Chrome sometimes includes the in-progress syllable in input.value during
+//    compositionupdate, Safari does not. We always display committedSyls +
+//    composingChar preview rather than parsing input.value mid-composition.
+//
+// Strategy: track committedSyls ourselves. Only sync from input.value at
+// compositionend and on plain (non-IME) input events, deferred by one tick on
+// Chrome so the value has settled.
+
+let committedSyls = []; // syllables fully committed (not mid-composition)
 let isComposing   = false;
+let _inputDebounce = null;
+
+// Detect Chrome (including Chrome on iOS/Android) vs Safari
+const _isChrome = /Chrome\//.test(navigator.userAgent) && !/Edg\//.test(navigator.userAgent)
+                  || /CriOS\//.test(navigator.userAgent);
 
 function attachInput() {
   const input = document.getElementById('hiddenInput');
@@ -2815,29 +3176,44 @@ function attachInput() {
   input.value   = '';
   committedSyls = [];
   isComposing   = false;
+  composingChar = '';
+  if (_inputDebounce) { clearTimeout(_inputDebounce); _inputDebounce = null; }
 
   input.addEventListener('compositionstart', () => {
     isComposing   = true;
     composingChar = '';
+    if (_inputDebounce) { clearTimeout(_inputDebounce); _inputDebounce = null; }
   });
 
   input.addEventListener('compositionupdate', e => {
     composingChar = e.data || '';
-    // Display committed syls + live composing char preview
+    // Show committed syls + the live in-progress syllable preview
     updateBlocks(committedSyls, 'typing');
   });
 
-  input.addEventListener('compositionend', e => {
+  input.addEventListener('compositionend', () => {
     isComposing   = false;
     composingChar = '';
-    // On compositionend, input.value is now reliable — sync committedSyls from it
-    committedSyls = getSyllables(input.value);
-    updateBlocks(committedSyls, 'typing');
-    clearWrongFeedback();
+    // Defer one tick: Chrome fires `input` immediately after compositionend
+    // before input.value is fully settled for the newly committed syllable.
+    const syncValue = () => {
+      committedSyls = getSyllables(input.value);
+      updateBlocks(committedSyls, 'typing');
+      clearWrongFeedback();
+    };
+    if (_isChrome) {
+      _inputDebounce = setTimeout(syncValue, 0);
+    } else {
+      syncValue();
+    }
   });
 
   input.addEventListener('input', () => {
-    if (isComposing) return; // handled by compositionupdate/end
+    // During composition: Chrome fires this between compositionend and the
+    // next compositionstart. The defer in compositionend handles that case;
+    // suppress this event if our defer is pending.
+    if (isComposing) return;
+    if (_inputDebounce) return; // Chrome: defer already scheduled from compositionend
     composingChar = '';
     committedSyls = getSyllables(input.value);
     updateBlocks(committedSyls, 'typing');
