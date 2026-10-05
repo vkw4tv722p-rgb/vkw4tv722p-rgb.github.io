@@ -2765,11 +2765,14 @@ const STORIES = {
 
 // ── QUIZ STATE PERSISTENCE ────────────────────────────────────────────────
 const QUIZ_SAVE_KEY = 'korean-game-quiz-save';
+// Bump this any time new lists are added — saves from older versions are discarded automatically
+const LISTS_VERSION = Object.keys(LISTS).join(',');
 
 function saveQuizState() {
   if (mode !== 'quiz' || quizQueue.length === 0) return;
   try {
     const save = {
+      listsVersion: LISTS_VERSION,
       selectedLists: [...selectedLists],
       quizQueue,
       quizIndex,
@@ -2792,6 +2795,8 @@ function loadQuizSave() {
     const raw = localStorage.getItem(QUIZ_SAVE_KEY);
     if (!raw) return null;
     const save = JSON.parse(raw);
+    // Discard saves from a different version of the word lists (e.g. after adding a new unit)
+    if (save.listsVersion !== LISTS_VERSION) { localStorage.removeItem(QUIZ_SAVE_KEY); return null; }
     // Validate — must have lists that still exist
     if (!save.selectedLists || !save.quizQueue || save.quizIndex == null) return null;
     const validLists = save.selectedLists.filter(l => LISTS[l]);
