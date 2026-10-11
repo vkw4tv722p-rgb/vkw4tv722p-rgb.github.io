@@ -3191,8 +3191,29 @@ function attachInput() {
   });
 
   input.addEventListener('compositionupdate', e => {
-    composingChar = e.data || '';
-    // Show committed syls + the live in-progress syllable preview
+    const data = e.data || '';
+    // Chrome with some Korean IME setups keeps the entire typed string in e.data
+    // (not just the current syllable). Parse it: completed Hangul syllables before
+    // the last character are treated as committed so they display in their own blocks;
+    // the last character is the in-progress preview. If the whole string is already
+    // complete syllables (no in-progress jamo), treat them all as committed.
+    const chars = [...data];
+    if (chars.length > 1) {
+      const allComplete = chars.every(ch => isHangulSyllable(ch));
+      if (allComplete) {
+        // Entire composition data is complete syllables — no in-progress char
+        committedSyls = getSyllables(input.value.slice(0, input.value.length - data.length) + data);
+        composingChar = '';
+      } else {
+        // Leading chars are committed, last is in-progress
+        const prevText = input.value.slice(0, input.value.length - data.length);
+        const leadingDone = chars.slice(0, -1).filter(ch => isHangulSyllable(ch));
+        committedSyls = [...getSyllables(prevText), ...leadingDone];
+        composingChar = chars[chars.length - 1];
+      }
+    } else {
+      composingChar = data;
+    }
     updateBlocks(committedSyls, 'typing');
   });
 
@@ -3250,7 +3271,21 @@ function submitAnswer() {
   if (submissionLocked) return; // guard: ignore during advance delay after correct answer
   const input = document.getElementById('hiddenInput');
   if (!input) return;
-  if (!input) return;
+  // Chrome: if a compositionend debounce is pending, flush it now so committedSyls
+  // is up-to-date before we read it (compositionend fires before keydown for Enter).
+  if (_inputDebounce) {
+    clearTimeout(_inputDebounce);
+    _inputDebounce = null;
+    committedSyls = getSyllables(input.value);
+    isComposing   = false;
+    composingChar = '';
+    updateBlocks(committedSyls, 'typing');
+  }
+  // Also sync from input.value directly as a fallback — covers cases where
+  // Chrome batches the whole composition and committedSyls is still stale.
+  if (committedSyls.length === 0 && input.value.length > 0) {
+    committedSyls = getSyllables(input.value);
+  }
   const typedSyls = committedSyls.slice(); // use our tracked committed state
   if (typedSyls.length === 0) return;
 
