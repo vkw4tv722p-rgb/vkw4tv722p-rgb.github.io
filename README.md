@@ -3147,28 +3147,25 @@ function updateBlocks(typedSyls, state) {
 }
 
 // ── INPUT HANDLING ────────────────────────────────────────────────────────
-// input.value is the ground truth. We read it deferred by one tick so that
-// Chrome (mac + Android) has time to settle it after compositionend / input.
+// Ground truth: input.value read on every `input` event, including mid-IME.
 //
-// composingChar is derived from e.data in compositionupdate purely as a live
-// preview of the syllable currently being assembled — we never rely on it for
-// submission. e.data may be just one partial syllable (Safari, Chrome mac) or
-// the entire accumulated string (Android GBoard / Samsung keyboard); we handle
-// both by treating all but the last character as already-committed.
+// Chrome Mac keeps the entire composition open across syllables and never
+// fires compositionend between them — so we CANNOT rely on compositionend
+// to commit syllables. Instead we read input.value on every `input` event
+// (Chrome updates it correctly even mid-composition on Mac).
 //
-// On Android there are no keydown events for Enter — the submit button fires
-// submitAnswer() directly, bypassing the keyboard entirely.
+// composingChar: the last character of e.data from compositionupdate, used
+// only to animate the "active block" highlight. Never used for submission.
+//
+// Safari: fires compositionend per syllable; input event fires after each
+// compositionend — so the same input handler path handles it correctly.
+//
+// Android: input.value is reliable after each `input` event too.
+// No keydown Enter on Android — submit button calls submitAnswer() directly.
 
 let committedSyls  = [];
 let isComposing    = false;
 let _inputDebounce = null;
-
-function _syncFromValue(input) {
-  committedSyls = getSyllables(input.value);
-  composingChar = '';
-  updateBlocks(committedSyls, 'typing');
-  clearWrongFeedback();
-}
 
 function attachInput() {
   const input = document.getElementById('hiddenInput');
@@ -3181,51 +3178,38 @@ function attachInput() {
 
   input.addEventListener('compositionstart', () => {
     isComposing = true;
-    if (_inputDebounce) { clearTimeout(_inputDebounce); _inputDebounce = null; }
   });
 
   input.addEventListener('compositionupdate', e => {
-    // Derive a live preview from e.data without touching input.value.
-    // e.data may be: one partial syllable (ㄱ, 가, 각…), one complete syllable,
-    // or on Android the entire accumulated string. Treat all complete syllables
-    // except the last character as committed display; last char is the preview.
-    const data  = e.data || '';
+    // Just track the in-progress char for the active-block highlight.
+    // All display is driven by the `input` event reading input.value.
+    const data = e.data || '';
     const chars = [...data];
-    if (chars.length === 0) { composingChar = ''; updateBlocks(committedSyls, 'typing'); return; }
-
-    if (chars.length === 1) {
-      // Normal case: one in-progress char
-      composingChar = data;
-    } else {
-      // Android / batched case: leading chars are done syllables, last is in-progress.
-      // We don't update committedSyls here (input.value isn't reliable mid-composition);
-      // just show the preview correctly.
-      composingChar = chars[chars.length - 1];
-      // Optimistically display leading syllables in blocks if committedSyls is short
-      const leading = chars.slice(0, -1).filter(isHangulSyllable);
-      if (leading.length > committedSyls.length) {
-        committedSyls = leading; // will be corrected on compositionend/input
-      }
-    }
-    updateBlocks(committedSyls, 'typing');
+    composingChar = chars[chars.length - 1] || '';
   });
 
   input.addEventListener('compositionend', () => {
     isComposing   = false;
     composingChar = '';
-    // Always defer one tick — Chrome reopens composition immediately and
-    // input.value may not yet include the just-committed syllable.
+    // Defer one tick so input.value has settled before we read it.
     if (_inputDebounce) clearTimeout(_inputDebounce);
     _inputDebounce = setTimeout(() => {
       _inputDebounce = null;
-      _syncFromValue(input);
+      committedSyls = getSyllables(input.value);
+      composingChar = '';
+      updateBlocks(committedSyls, 'typing');
+      clearWrongFeedback();
     }, 0);
   });
 
   input.addEventListener('input', () => {
-    if (isComposing) return;
-    if (_inputDebounce) return; // compositionend defer already scheduled
-    _syncFromValue(input);
+    // Read input.value on every input event — including during composition.
+    // Chrome Mac updates input.value correctly mid-composition, so this
+    // is what drives real-time block display across all browsers.
+    if (_inputDebounce) { clearTimeout(_inputDebounce); _inputDebounce = null; }
+    committedSyls = getSyllables(input.value);
+    updateBlocks(committedSyls, 'typing');
+    if (!isComposing) clearWrongFeedback();
   });
 
   input.addEventListener('keydown', e => {
