@@ -3147,33 +3147,28 @@ function updateBlocks(typedSyls, state) {
 }
 
 // ── INPUT HANDLING ────────────────────────────────────────────────────────
-// Input handling for Korean (Hangul) IME across Safari and Chrome.
+// input.value is the ground truth. We read it deferred by one tick so that
+// Chrome (mac + Android) has time to settle it after compositionend / input.
 //
-// The core problem: Hangul input uses IME composition. Each syllable is
-// "composed" from individual jamo keystrokes before being committed. The
-// browser fires compositionstart → compositionupdate (per keystroke) →
-// compositionend (syllable committed). Safari and Chrome differ in two ways:
+// composingChar is derived from e.data in compositionupdate purely as a live
+// preview of the syllable currently being assembled — we never rely on it for
+// submission. e.data may be just one partial syllable (Safari, Chrome mac) or
+// the entire accumulated string (Android GBoard / Samsung keyboard); we handle
+// both by treating all but the last character as already-committed.
 //
-// 1. Chrome re-opens composition immediately after compositionend for the next
-//    syllable, causing an `input` event to fire between compositionend and the
-//    next compositionstart. Reading input.value at that instant gives a stale
-//    or partially-updated value. We use a one-tick defer to let Chrome settle.
-//
-// 2. Chrome sometimes includes the in-progress syllable in input.value during
-//    compositionupdate, Safari does not. We always display committedSyls +
-//    composingChar preview rather than parsing input.value mid-composition.
-//
-// Strategy: track committedSyls ourselves. Only sync from input.value at
-// compositionend and on plain (non-IME) input events, deferred by one tick on
-// Chrome so the value has settled.
+// On Android there are no keydown events for Enter — the submit button fires
+// submitAnswer() directly, bypassing the keyboard entirely.
 
-let committedSyls = []; // syllables fully committed (not mid-composition)
-let isComposing   = false;
+let committedSyls  = [];
+let isComposing    = false;
 let _inputDebounce = null;
 
-// Detect Chrome (including Chrome on iOS/Android) vs Safari
-const _isChrome = /Chrome\//.test(navigator.userAgent) && !/Edg\//.test(navigator.userAgent)
-                  || /CriOS\//.test(navigator.userAgent);
+function _syncFromValue(input) {
+  committedSyls = getSyllables(input.value);
+  composingChar = '';
+  updateBlocks(committedSyls, 'typing');
+  clearWrongFeedback();
+}
 
 function attachInput() {
   const input = document.getElementById('hiddenInput');
@@ -3185,34 +3180,32 @@ function attachInput() {
   if (_inputDebounce) { clearTimeout(_inputDebounce); _inputDebounce = null; }
 
   input.addEventListener('compositionstart', () => {
-    isComposing   = true;
-    composingChar = '';
+    isComposing = true;
     if (_inputDebounce) { clearTimeout(_inputDebounce); _inputDebounce = null; }
   });
 
   input.addEventListener('compositionupdate', e => {
-    const data = e.data || '';
-    // Chrome with some Korean IME setups keeps the entire typed string in e.data
-    // (not just the current syllable). Parse it: completed Hangul syllables before
-    // the last character are treated as committed so they display in their own blocks;
-    // the last character is the in-progress preview. If the whole string is already
-    // complete syllables (no in-progress jamo), treat them all as committed.
+    // Derive a live preview from e.data without touching input.value.
+    // e.data may be: one partial syllable (ㄱ, 가, 각…), one complete syllable,
+    // or on Android the entire accumulated string. Treat all complete syllables
+    // except the last character as committed display; last char is the preview.
+    const data  = e.data || '';
     const chars = [...data];
-    if (chars.length > 1) {
-      const allComplete = chars.every(ch => isHangulSyllable(ch));
-      if (allComplete) {
-        // Entire composition data is complete syllables — no in-progress char
-        committedSyls = getSyllables(input.value.slice(0, input.value.length - data.length) + data);
-        composingChar = '';
-      } else {
-        // Leading chars are committed, last is in-progress
-        const prevText = input.value.slice(0, input.value.length - data.length);
-        const leadingDone = chars.slice(0, -1).filter(ch => isHangulSyllable(ch));
-        committedSyls = [...getSyllables(prevText), ...leadingDone];
-        composingChar = chars[chars.length - 1];
-      }
-    } else {
+    if (chars.length === 0) { composingChar = ''; updateBlocks(committedSyls, 'typing'); return; }
+
+    if (chars.length === 1) {
+      // Normal case: one in-progress char
       composingChar = data;
+    } else {
+      // Android / batched case: leading chars are done syllables, last is in-progress.
+      // We don't update committedSyls here (input.value isn't reliable mid-composition);
+      // just show the preview correctly.
+      composingChar = chars[chars.length - 1];
+      // Optimistically display leading syllables in blocks if committedSyls is short
+      const leading = chars.slice(0, -1).filter(isHangulSyllable);
+      if (leading.length > committedSyls.length) {
+        committedSyls = leading; // will be corrected on compositionend/input
+      }
     }
     updateBlocks(committedSyls, 'typing');
   });
@@ -3220,30 +3213,19 @@ function attachInput() {
   input.addEventListener('compositionend', () => {
     isComposing   = false;
     composingChar = '';
-    // Defer one tick: Chrome fires `input` immediately after compositionend
-    // before input.value is fully settled for the newly committed syllable.
-    const syncValue = () => {
-      committedSyls = getSyllables(input.value);
-      updateBlocks(committedSyls, 'typing');
-      clearWrongFeedback();
-    };
-    if (_isChrome) {
-      _inputDebounce = setTimeout(syncValue, 0);
-    } else {
-      syncValue();
-    }
+    // Always defer one tick — Chrome reopens composition immediately and
+    // input.value may not yet include the just-committed syllable.
+    if (_inputDebounce) clearTimeout(_inputDebounce);
+    _inputDebounce = setTimeout(() => {
+      _inputDebounce = null;
+      _syncFromValue(input);
+    }, 0);
   });
 
   input.addEventListener('input', () => {
-    // During composition: Chrome fires this between compositionend and the
-    // next compositionstart. The defer in compositionend handles that case;
-    // suppress this event if our defer is pending.
     if (isComposing) return;
-    if (_inputDebounce) return; // Chrome: defer already scheduled from compositionend
-    composingChar = '';
-    committedSyls = getSyllables(input.value);
-    updateBlocks(committedSyls, 'typing');
-    clearWrongFeedback();
+    if (_inputDebounce) return; // compositionend defer already scheduled
+    _syncFromValue(input);
   });
 
   input.addEventListener('keydown', e => {
