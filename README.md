@@ -3207,6 +3207,11 @@ function attachInput() {
     // Chrome Mac updates input.value correctly mid-composition, so this
     // is what drives real-time block display across all browsers.
     if (_inputDebounce) { clearTimeout(_inputDebounce); _inputDebounce = null; }
+    // Keep caret at end so Chrome IME always appends (not prepends) syllables.
+    const len = input.value.length;
+    if (input.selectionStart !== len || input.selectionEnd !== len) {
+      input.setSelectionRange(len, len);
+    }
     committedSyls = getSyllables(input.value);
     updateBlocks(committedSyls, 'typing');
     if (!isComposing) clearWrongFeedback();
@@ -3441,7 +3446,8 @@ function renderQuiz(phrases) {
 
     <div class="blocks-area" id="blocksArea">
       <input class="hidden-input" id="hiddenInput" type="text"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        inputmode="text" dir="ltr">
       ${phrase.prefix ? `<div style="font-family:'Gowun Dodum',sans-serif;font-size:18px;color:var(--muted);margin-bottom:6px">${phrase.prefix}</div>` : ''}
       <div class="blocks-row">${blocksHTML}</div>
       ${phrase.suffix ? `<div style="font-family:'Gowun Dodum',sans-serif;font-size:18px;color:var(--muted);margin-top:6px">${phrase.suffix}</div>` : ''}
@@ -4689,7 +4695,8 @@ function renderStoryDrillSentence() {
 
     <div class="blocks-area" id="blocksArea">
       <input class="hidden-input" id="hiddenInput" type="text"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        inputmode="text" dir="ltr">
       <div class="blocks-row">${blocksHTML}</div>
       <div class="tap-hint" id="tapHint">tap to type</div>
     </div>
